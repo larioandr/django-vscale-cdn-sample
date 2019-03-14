@@ -187,16 +187,20 @@ def clone_repo(c, user=VM_USER_NAME, repo=REPO_URL, sitename=SITENAME):
             c.run(f'python3 -m venv --prompt {sitename} .venv')
 
 
-def update_repo(c, user=VM_USER_NAME, branch=BRANCH, sitename=SITENAME):
+def update_repo(c, user=VM_USER_NAME, branch=BRANCH, sitename=SITENAME,
+                proj=DJANGO_PROJECT_NAME):
     print('[FAB] * update_repo()')
     with c.cd(f'/home/{user}/sites/{sitename}'):
         c.run(f'git fetch')
         c.run(f'git checkout {branch}')
         c.run(f'git reset --hard `git log -n 1 --format=%H {branch}`')
+        c.run(f'echo "------"; pwd; ls -al')
         c.run(f'.venv/bin/pip install --upgrade pip')
         c.run(f'.venv/bin/pip install -r requirements.txt')
-        c.run('.venv/bin/python manage.py collectstatic --noinput')
-        c.run('.venv/bin/python manage.py migrate --noinput')
+        with c.cd(proj):
+            # TODO: set STATIC_ROOT in deployment and uncomment:
+            # c.run('../.venv/bin/python manage.py collectstatic --noinput')
+            c.run('../.venv/bin/python manage.py migrate --noinput')
 
 
 def create_database(c, db=DB_NAME, user=DB_USER, password=DB_PASS):
@@ -206,8 +210,8 @@ def create_database(c, db=DB_NAME, user=DB_USER, password=DB_PASS):
         return f'sudo -u postgres psql -qc "{cmd};"'
 
     # noinspection SqlNoDataSourceInspection,SqlDialectInspection
-    c.run(psql(f"CREATE DATABASE {db}"))
-    c.run(psql(f"CREATE USER {user} WITH PASSWORD '{password}'"))
+    c.run(psql(f"CREATE DATABASE {db}"), warn=True)
+    c.run(psql(f"CREATE USER {user} WITH PASSWORD '{password}'"), warn=True)
     c.run(psql(f"ALTER ROLE {user} SET client_encoding TO 'utf-8'"))
     c.run(psql(f"ALTER ROLE {user} SET default_transaction_isolation TO "
                "'read committed'"))
