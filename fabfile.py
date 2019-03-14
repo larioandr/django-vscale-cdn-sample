@@ -153,13 +153,13 @@ def copy_certificates(
         cert_path=CDN_CERT_PATH, sitename=SITENAME):
     print('[FAB] * copy_certificates()')
     ftp = f'SSHPASS={password} sshpass -e sftp {user}@{ftp_server}:/{cert_path}'
-    local_path = f'/etc/ssl/certs/{sitename}'
+    local_path = f'/etc/ssl/'
 
     c.run('mkdir -p ~/.ssh')
     c.run(f'ssh-keyscan -H {ftp_server} >> ~/.ssh/known_hosts')
     c.run(f'mkdir -p {local_path}')
-    c.run(f'{ftp}/{sitename}*.crt {local_path}/')
-    c.run(f'{ftp}/{sitename}*.key {local_path}/')
+    c.run(f'{ftp}/{sitename}*.crt /etc/ssl/certs/')
+    c.run(f'{ftp}/{sitename}*.key /etc/ssl/private/')
     # c.run(f'{ftp}/{sitename}*.pem {local_path}/')
 
 
@@ -197,6 +197,7 @@ def update_repo(c, user=VM_USER_NAME, branch=BRANCH, sitename=SITENAME,
         c.run(f'echo "------"; pwd; ls -al')
         c.run(f'.venv/bin/pip install --upgrade pip')
         c.run(f'.venv/bin/pip install -r requirements.txt')
+        c.run(f'touch .env')  # TODO: add separate command, fill .env properly
         with c.cd(proj):
             # TODO: set STATIC_ROOT in deployment and uncomment:
             # c.run('../.venv/bin/python manage.py collectstatic --noinput')

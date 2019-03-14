@@ -7,8 +7,8 @@ server {
     listen 443;
 
     ssl on;
-    ssl_certificate /etc/ssl/certs/SITENAME/SITENAME-YEAR.crt;
-    ssl_certificate_key /etc/ssl/private/SITENAME/SITENAME-YEAR.key;
+    ssl_certificate /etc/ssl/certs/SITENAME-YEAR.crt;
+    ssl_certificate_key /etc/ssl/private/SITENAME-YEAR.key;
 
     server_name SITENAME;
 
