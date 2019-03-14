@@ -169,7 +169,7 @@ def create_nginx_config(c, user=VM_USER_NAME, sitename=SITENAME,
     with c.cd('/etc/nginx/sites-available'):
         c.run(f'ln -frs {sitename} ../sites-enabled/{sitename}')
         c.run(f'ln -frs www.{sitename} ../sites-enabled/www.{sitename}')
-        c.run(f'rm -f default')
+        c.run(f'rm -f ../sites-enabled/default')
 
 
 def start_gunicorn(c, sitename=SITENAME):
@@ -179,7 +179,7 @@ def start_gunicorn(c, sitename=SITENAME):
 
 def start_nginx(c):
     print('[FAB] * start_nginx()')
-    c.run(f'systemctl start nginx')
+    c.run(f'systemctl restart nginx')
 
 
 def write_env(c, user=VM_USER_NAME, sitename=SITENAME):
