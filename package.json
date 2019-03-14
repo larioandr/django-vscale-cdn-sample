@@ -1,0 +1,37 @@
+{
+  "name": "django-vscale-cdn-sample",
+  "version": "1.0.0",
+  "description": "Front-end for django-vscale-cdn-sample",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/larioandr/django-vscale-cdn-sample.git"
+  },
+  "author": "Andrey Larionov <larioandr@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/larioandr/django-vscale-cdn-sample/issues"
+  },
+  "homepage": "https://github.com/larioandr/django-vscale-cdn-sample#readme",
+  "dependencies": {
+    "gulp": "^4.0.0",
+    "jquery": "^3.3.1",
+    "popper.js": "^1.14.7"
+  },
+  "devDependencies": {
+    "autoprefixer": "^9.4.8",
+    "bootstrap": "^4.3.1",
+    "browser-sync": "^2.26.3",
+    "cssnano": "^4.1.10",
+    "del": "^3.0.0",
+    "gulp-autoprefixer": "^6.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-postcss": "^8.0.0",
+    "gulp-sass": "^4.0.2",
+    "gulp-uglify": "^3.0.1",
+    "yargs": "^13.2.1"
+  }
+}
