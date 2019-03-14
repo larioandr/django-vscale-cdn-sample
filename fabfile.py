@@ -11,6 +11,7 @@ import time
 warnings.filterwarnings(action='ignore', module='.*paramiko.*')
 
 
+SITENAME = os.environ['SITENAME']
 VSCALE_TOKEN = os.environ['VSCALE_TOKEN']
 VM_ROOT_PASS = os.environ['VM_ROOT_PASS']
 VM_USER_NAME = os.environ['VM_USER_NAME']
@@ -20,7 +21,6 @@ CDN_FTP_SERVER = os.environ.get('CDN_FTP_SERVER', 'ftp.selcdn.ru')
 CDN_USER = os.environ['CDN_USER']
 CDN_PASS = os.environ['CDN_PASS']
 CDN_CERT_PATH = os.environ['CDN_CERT_PATH']
-SITENAME = os.environ['SITENAME']
 REPO_URL = os.environ['REPO_URL']
 BRANCH = os.environ['REPO_BRANCH']
 DB_NAME = os.environ['DB_NAME']
@@ -39,13 +39,8 @@ DJANGO_PROJECT_NAME = 'ubio'
 
 
 @fabric.task
-def create_server(ctx, scalet_name):
-    # 1) Create a scalet and update the DNS:
-    # address = create_scalet(scalet_name)
-    # update_dns(address)
-    address = '5.189.227.3'
-
-    # 2) Establish a connection with root access rights to install software,
+def create_server(ctx, address):
+    # 1) Establish a connection with root access rights to install software,
     # create admin user and copy certificates:
     root = fabric.Connection(address, user='root', connect_kwargs={
         'password': VM_ROOT_PASS
@@ -54,15 +49,16 @@ def create_server(ctx, scalet_name):
     copy_certificates(root)
     create_user(root)
 
-    # 3) Establish a connection on part of the non-root user (site admin),
+    # 2) Establish a connection on part of the non-root user (site admin),
     # prepare home folder, clone the repository and setup the database:
     user = fabric.Connection(address, user=VM_USER_NAME, connect_kwargs={
         'password': VM_USER_PASS
     })
     clone_repo(user)
+    write_env(user)
     create_database(user)
 
-    # 4) On part of root, create configuration files and services:
+    # 3) On part of root, create configuration files and services:
     create_gunicorn_service(root)
     create_nginx_config(root)
 
@@ -71,81 +67,6 @@ def create_server(ctx, scalet_name):
     update_repo(user)
     start_gunicorn(root)
     start_nginx(root)
-
-
-def vscale(url, method='get', data=None, token=VSCALE_TOKEN):
-    fn = getattr(requests, method)
-    headers = {'X-Token': token}
-    if data:
-        headers['Content-Type'] = 'application/json;charset=UTF-8'
-        response = fn(url, headers=headers, data=json.dumps(data))
-    else:
-        response = fn(url, headers=headers)
-    if 200 <= response.status_code <= 299:
-        return response.json()
-    raise RuntimeError(response)
-
-
-def create_scalet(name, rplan='small', location='msk0', password=VM_ROOT_PASS):
-    print('[FAB] * create_scalet()')
-    response = vscale('https://api.vscale.io/v1/scalets', method='post', data={
-        'make_from': 'ubuntu_18.04_64_001_master',
-        'name': name,
-        'rplan': rplan,
-        'do_start': True,
-        'password': password,
-        'location': location,
-    })
-    ctid = response['ctid']
-    while response['status'] != 'started':
-        time.sleep(1)
-        response = vscale(f'https://api.vscale.io/v1/scalets/{ctid}')
-    return response['public_address']['address']
-
-
-def update_dns(address, domain=DOMAIN, sitename=SITENAME, ttl=300):
-    print('[FAB] * update_dns()')
-    # 1) First we find the domain ID:
-    response = vscale('https://api.vscale.io/v1/domains')
-    dom_id = [rec['id'] for rec in response if rec['name'] == domain][0]
-
-    # 2) Then we list all domain records related to this domain and try to find
-    # the record related to our site:
-    all_sites = vscale(f'https://api.vscale.io/v1/domains/{dom_id}/records')
-
-    # 3) Since we need both sitename (e.g. example.com) and www.sitename,
-    # we iterate through these names in cycle:
-    for name in (sitename, f'www.{sitename}'):
-        records = [rec for rec in all_sites
-                   if rec['name'] == name and rec['type'] in {'A', 'CNAME'}]
-        assert 0 <= len(records) <= 1
-
-        data = {
-            'content': address,
-            'ttl': ttl,
-            'type': 'A',
-            'name': name
-        }
-
-        # 4) If there is no site records, we create one:
-        if not records:
-            vscale(f'https://api.vscale.io/v1/domains/{dom_id}/records/',
-                   method='post', data=data)
-            continue
-
-        # 5) If name was already registered, we need to find this record and
-        # make sure that its type is 'A'. If its type is 'CNAME', we need to
-        # first delete that record (otherwise, Vscale API will return 400).
-        # Otherwise, we issue PUT request to update the record.
-        rid = records[0]['id']
-        if records[0]['type'] != data['type']:
-            vscale(f'https://api.vscale.io/v1/domains/{dom_id}/records/{rid}',
-                   method='delete')
-            vscale(f'https://api.vscale.io/v1/domains/{dom_id}/records/',
-                   method='post', data=data)
-        else:
-            vscale(f'https://api.vscale.io/v1/domains/{dom_id}/records/{rid}',
-                   method='put', data=data)
 
 
 def copy_certificates(
@@ -197,7 +118,6 @@ def update_repo(c, user=VM_USER_NAME, branch=BRANCH, sitename=SITENAME,
         c.run(f'echo "------"; pwd; ls -al')
         c.run(f'.venv/bin/pip install --upgrade pip')
         c.run(f'.venv/bin/pip install -r requirements.txt')
-        c.run(f'touch .env')  # TODO: add separate command, fill .env properly
         with c.cd(proj):
             # TODO: set STATIC_ROOT in deployment and uncomment:
             # c.run('../.venv/bin/python manage.py collectstatic --noinput')
@@ -249,6 +169,7 @@ def create_nginx_config(c, user=VM_USER_NAME, sitename=SITENAME,
     with c.cd('/etc/nginx/sites-available'):
         c.run(f'ln -frs {sitename} ../sites-enabled/{sitename}')
         c.run(f'ln -frs www.{sitename} ../sites-enabled/www.{sitename}')
+        c.run(f'rm -f default')
 
 
 def start_gunicorn(c, sitename=SITENAME):
@@ -259,3 +180,10 @@ def start_gunicorn(c, sitename=SITENAME):
 def start_nginx(c):
     print('[FAB] * start_nginx()')
     c.run(f'systemctl start nginx')
+
+
+def write_env(c, user=VM_USER_NAME, sitename=SITENAME):
+    with c.cd(f'/home/{user}/sites/{sitename}'):
+        c.run('rm -f .env && touch .env')
+        c.run(f'echo DJANGO_REMOTE={os.environ["DJANGO_REMOTE"]} >> .env')
+        c.run(f'echo SITENAME={os.environ["SITENAME"]} >> .env')

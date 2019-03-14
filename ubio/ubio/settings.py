@@ -25,7 +25,10 @@ SECRET_KEY = 'ywhdsds2!sl8@yr73@t(torar6m%3pc)56eg-k#mdu*6=#h!fg'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+if os.environ.get('DJANGO_REMOTE', False):
+    ALLOWED_HOSTS = [os.environ['SITENAME']]
+else:
+    ALLOWED_HOSTS = []
 
 
 # Application definition
