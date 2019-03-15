@@ -223,7 +223,7 @@ def update_repo(c, user=VM_USER_NAME, branch=BRANCH, sitename=SITENAME,
         c.run(f'git branch --set-upstream-to origin/{branch}', echo=True)
         c.run(f'git fetch', echo=True)
         c.run(f'git checkout --force {branch}', echo=True)
-        c.run(f'git reset --hard `git log -n 1 --format=%H {branch}`',
+        c.run(f'git reset --hard `git log --all -n 1 --format=%H {branch}`',
               echo=True)
         c.run(f'.venv/bin/pip install --upgrade pip', echo=True)
         c.run(f'.venv/bin/pip install -r requirements.txt', echo=True)
