@@ -14,22 +14,22 @@ import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REMOTE_DEPLOY = os.environ.get('DJANGO_REMOTE', False)
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'ywhdsds2!sl8@yr73@t(torar6m%3pc)56eg-k#mdu*6=#h!fg'
+if REMOTE_DEPLOY:
+    SECRET_KEY = os.environ['SECRET_KEY']
+    ALLOWED_HOSTS = [os.environ['SITENAME']]
+else:
+    SECRET_KEY = 'ywhdsds2!sl8@yr73@t(torar6m%3pc)56eg-k#mdu*6=#h!fg'
+    ALLOWED_HOSTS = []
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-if os.environ.get('DJANGO_REMOTE', False):
-    ALLOWED_HOSTS = [os.environ['SITENAME']]
-else:
-    ALLOWED_HOSTS = []
-
 
 # Application definition
 
