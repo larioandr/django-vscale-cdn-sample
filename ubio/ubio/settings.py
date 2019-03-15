@@ -24,12 +24,11 @@ REMOTE_DEPLOY = os.environ.get('DJANGO_REMOTE', False)
 if REMOTE_DEPLOY:
     SECRET_KEY = os.environ['SECRET_KEY']
     ALLOWED_HOSTS = [os.environ['SITENAME']]
+    DEBUG = False
 else:
     SECRET_KEY = 'ywhdsds2!sl8@yr73@t(torar6m%3pc)56eg-k#mdu*6=#h!fg'
     ALLOWED_HOSTS = []
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+    DEBUG = True
 
 # Application definition
 

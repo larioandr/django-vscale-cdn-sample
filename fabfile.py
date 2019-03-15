@@ -52,7 +52,6 @@ def create_server(ctx, name):
     # 1) Create new scalet, bind DNS to it and add address to known_hosts:
     address = create_scalet(name)
     update_dns(address)
-    # ctx.run(f'ssh-keyscan -H {address} >> ~/.ssh/known_hosts')
 
     # 2) Establish a connection with root access rights to install software,
     # create admin user and copy certificates:
@@ -81,8 +80,32 @@ def create_server(ctx, name):
     # 5) Update the repository, make migrations, install python packages.
     # Then tart services (on part of root).
     update_repo(user)
-    start_gunicorn(root)
-    start_nginx(root)
+    gunicorn_service(root, 'start')
+    nginx_service(root, 'restart')
+
+
+@fabric.task
+def update(ctx):
+    root = fabric.Connection(SITENAME, user='root', connect_kwargs={
+        'password': VM_ROOT_PASS
+    })
+    user = fabric.Connection(SITENAME, user=VM_USER_NAME, connect_kwargs={
+        'password': VM_USER_PASS
+    })
+    for conn in (root, user):
+        conn.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    # Load changes, write .env:
+    write_env(user)
+    update_repo(user)
+
+    # Update services configurations and restart them:
+    gunicorn_service(root, 'stop')
+    nginx_service(root, 'stop')
+    create_gunicorn_service(root)
+    create_nginx_config(root)
+    gunicorn_service(root, 'start')
+    nginx_service(root, 'start')
 
 
 def vscale(url, method='get', data=None, token=VSCALE_TOKEN):
@@ -263,14 +286,14 @@ def create_nginx_config(c, user=VM_USER_NAME, sitename=SITENAME,
         c.run(f'rm -f ../sites-enabled/default')
 
 
-def start_gunicorn(c, sitename=SITENAME):
+def gunicorn_service(c, cmd, sitename=SITENAME):
     print('[FAB] * start_gunicorn()')
-    c.run(f'systemctl start gunicorn-{sitename}')
+    c.run(f'systemctl {cmd} gunicorn-{sitename}')
 
 
-def start_nginx(c):
+def nginx_service(c, cmd):
     print('[FAB] * start_nginx()')
-    c.run(f'systemctl restart nginx')
+    c.run(f'systemctl {cmd} nginx')
 
 
 def write_env(c, user=VM_USER_NAME, sitename=SITENAME):
