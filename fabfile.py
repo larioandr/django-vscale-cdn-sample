@@ -186,76 +186,70 @@ def update_dns(address, domain=DOMAIN, sitename=SITENAME, ttl=300):
 def copy_certificates(
         c, user=CDN_USER, password=CDN_PASS, ftp_server=CDN_FTP_SERVER,
         cert_path=CDN_CERT_PATH, sitename=SITENAME):
-    print('[FAB] * copy_certificates()')
     ftp = f'SSHPASS={password} sshpass -e sftp {user}@{ftp_server}:/{cert_path}'
     local_path = f'/etc/ssl/'
 
-    c.run('mkdir -p ~/.ssh')
-    c.run(f'ssh-keyscan -H {ftp_server} >> ~/.ssh/known_hosts')
-    c.run(f'mkdir -p {local_path}')
-    c.run(f'{ftp}/{sitename}*.crt /etc/ssl/certs/')
-    c.run(f'{ftp}/{sitename}*.key /etc/ssl/private/')
-    # c.run(f'{ftp}/{sitename}*.pem {local_path}/')
+    c.run('mkdir -p ~/.ssh', echo=True)
+    c.run(f'ssh-keyscan -H {ftp_server} >> ~/.ssh/known_hosts', echo=True)
+    c.run(f'mkdir -p {local_path}', echo=True)
+    c.run(f'{ftp}/{sitename}*.crt /etc/ssl/certs/', echo=True)
+    c.run(f'{ftp}/{sitename}*.key /etc/ssl/private/', echo=True)
+    # c.run(f'{ftp}/{sitename}*.pem {local_path}/', echo=True)
 
 
 def create_user(c, username=VM_USER_NAME, password=VM_USER_PASS):
-    print('[FAB] * create_user()')
     if c.run(f'adduser --quiet --disabled-password --gecos "" {username}',
-             warn=True).exited == 0:
+             warn=True, echo=True).exited == 0:
         c.run(f'echo "{username}:{password}" | chpasswd')
         c.run(f'echo "{username} ALL=(postgres) NOPASSWD: ALL" >> /etc/sudoers')
 
 
 def install_system_packages(c, packages=INSTALL_PACKAGES):
-    print('[FAB] * install_system_packages()')
     packages_string = ' '.join(packages)
-    c.run(f'apt update; apt-get -y install {packages_string}')
+    c.run(f'apt update; apt-get -y install {packages_string}', echo=True)
 
 
 def clone_repo(c, user=VM_USER_NAME, repo=REPO_URL, sitename=SITENAME):
-    print('[FAB] * clone_repo()')
-    c.run(f'mkdir -p /home/{user}/sites')
+    c.run(f'mkdir -p /home/{user}/sites', echo=True)
     with c.cd(f'/home/{user}/sites'):
-        c.run(f'rm -rf {sitename}')
-        c.run(f'git clone {repo} {sitename}')
+        c.run(f'rm -rf {sitename}', echo=True)
+        c.run(f'git clone {repo} {sitename}', echo=True)
         with c.cd(sitename):
-            c.run(f'python3 -m venv --prompt {sitename} .venv')
+            c.run(f'python3 -m venv --prompt {sitename} .venv', echo=True)
 
 
 def update_repo(c, user=VM_USER_NAME, branch=BRANCH, sitename=SITENAME,
                 proj=DJANGO_PROJECT_NAME):
-    print('[FAB] * update_repo()')
     with c.cd(f'/home/{user}/sites/{sitename}'):
-        c.run(f'git fetch')
-        c.run(f'git checkout {branch}')
-        c.run(f'git reset --hard `git log -n 1 --format=%H {branch}`')
-        c.run(f'echo "------"; pwd; ls -al')
-        c.run(f'.venv/bin/pip install --upgrade pip')
-        c.run(f'.venv/bin/pip install -r requirements.txt')
+        c.run(f'git branch --set-upstream-to origin/{branch}', echo=True)
+        c.run(f'git fetch', echo=True)
+        c.run(f'git checkout --force {branch}', echo=True)
+        c.run(f'git reset --hard `git log -n 1 --format=%H {branch}`',
+              echo=True)
+        c.run(f'.venv/bin/pip install --upgrade pip', echo=True)
+        c.run(f'.venv/bin/pip install -r requirements.txt', echo=True)
         with c.cd(proj):
             # TODO: set STATIC_ROOT in deployment and uncomment:
             # c.run('../.venv/bin/python manage.py collectstatic --noinput')
-            c.run('../.venv/bin/python manage.py migrate --noinput')
+            c.run('../.venv/bin/python manage.py migrate --noinput', echo=True)
 
 
 def create_database(c, db=DB_NAME, user=DB_USER, password=DB_PASS):
-    print('[FAB] * create_database()')
-
     def psql(cmd):
         return f'sudo -u postgres psql -qc "{cmd};"'
 
     # noinspection SqlNoDataSourceInspection,SqlDialectInspection
-    c.run(psql(f"CREATE DATABASE {db}"), warn=True)
-    c.run(psql(f"CREATE USER {user} WITH PASSWORD '{password}'"), warn=True)
-    c.run(psql(f"ALTER ROLE {user} SET client_encoding TO 'utf-8'"))
+    c.run(psql(f"CREATE DATABASE {db}"), warn=True, echo=True)
+    c.run(psql(f"CREATE USER {user} WITH PASSWORD '{password}'"), warn=True,
+          echo=True)
+    c.run(psql(f"ALTER ROLE {user} SET client_encoding TO 'utf-8'"), echo=True)
     c.run(psql(f"ALTER ROLE {user} SET default_transaction_isolation TO "
-               "'read committed'"))
-    c.run(psql(f"ALTER ROLE {user} SET timezone TO 'Europe/Moscow'"))
-    c.run(psql(f"GRANT ALL PRIVILEGES ON DATABASE {db} TO {user}"))
+               "'read committed'"), echo=True)
+    c.run(psql(f"ALTER ROLE {user} SET timezone TO 'Europe/Moscow'"), echo=True)
+    c.run(psql(f"GRANT ALL PRIVILEGES ON DATABASE {db} TO {user}"), echo=True)
 
 
 def create_gunicorn_service(c, user=VM_USER_NAME, sitename=SITENAME):
-    print('[FAB] * create_gunicorn_service()')
     assignments = {
         'SITENAME': sitename,
         'USERNAME': user,
@@ -263,13 +257,14 @@ def create_gunicorn_service(c, user=VM_USER_NAME, sitename=SITENAME):
     }
     pattern = ";".join([f's/{k}/{v}/g' for k, v in assignments.items()])
     c.run(f'cat /home/{user}/sites/{sitename}/deploy/gunicorn.service | '
-          f'sed "{pattern}" > /etc/systemd/system/gunicorn-{sitename}.service')
-    c.run(f'systemctl daemon-reload; systemctl enable gunicorn-{sitename}')
+          f'sed "{pattern}" > /etc/systemd/system/gunicorn-{sitename}.service',
+          echo=True)
+    c.run(f'systemctl daemon-reload; systemctl enable gunicorn-{sitename}',
+          echo=True)
 
 
 def create_nginx_config(c, user=VM_USER_NAME, sitename=SITENAME,
                         cert_year=CERT_YEAR, max_body_size=MAX_BODY_SIZE):
-    print('[FAB] * create_nginx_config()')
     assignments = {
         'SITENAME': sitename,
         'MAX_BODY_SIZE': max_body_size,
@@ -277,23 +272,24 @@ def create_nginx_config(c, user=VM_USER_NAME, sitename=SITENAME,
     }
     pattern = ";".join([f's/{k}/{v}/g' for k, v in assignments.items()])
     c.run(f'cat /home/{user}/sites/{sitename}/deploy/sitename.nginx |'
-          f'sed "{pattern}" > /etc/nginx/sites-available/{sitename}')
+          f'sed "{pattern}" > /etc/nginx/sites-available/{sitename}',
+          echo=True)
     c.run(f'cat /home/{user}/sites/{sitename}/deploy/www.sitename.nginx |'
-          f'sed "{pattern}" > /etc/nginx/sites-available/www.{sitename}')
+          f'sed "{pattern}" > /etc/nginx/sites-available/www.{sitename}',
+          echo=True)
     with c.cd('/etc/nginx/sites-available'):
-        c.run(f'ln -frs {sitename} ../sites-enabled/{sitename}')
-        c.run(f'ln -frs www.{sitename} ../sites-enabled/www.{sitename}')
-        c.run(f'rm -f ../sites-enabled/default')
+        c.run(f'ln -frs {sitename} ../sites-enabled/{sitename}', echo=True)
+        c.run(f'ln -frs www.{sitename} ../sites-enabled/www.{sitename}',
+              echo=True)
+        c.run(f'rm -f ../sites-enabled/default', echo=True)
 
 
 def gunicorn_service(c, cmd, sitename=SITENAME):
-    print('[FAB] * start_gunicorn()')
-    c.run(f'systemctl {cmd} gunicorn-{sitename}')
+    c.run(f'systemctl {cmd} gunicorn-{sitename}', echo=True)
 
 
 def nginx_service(c, cmd):
-    print('[FAB] * start_nginx()')
-    c.run(f'systemctl {cmd} nginx')
+    c.run(f'systemctl {cmd} nginx', echo=True)
 
 
 def write_env(c, user=VM_USER_NAME, sitename=SITENAME):
@@ -303,6 +299,6 @@ def write_env(c, user=VM_USER_NAME, sitename=SITENAME):
         'SECRET_KEY': f'\'{os.environ["SECRET_KEY"]}\'',
     }
     with c.cd(f'/home/{user}/sites/{sitename}'):
-        c.run('rm -f .env && touch .env')  # make sure we clear previous values
+        c.run('rm -f .env && touch .env', echo=True)
         for var, value in assignments.items():
             c.run(f'echo {var}={value} >> .env')
