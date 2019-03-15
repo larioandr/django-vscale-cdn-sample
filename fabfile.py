@@ -194,7 +194,6 @@ def copy_certificates(
     c.run(f'mkdir -p {local_path}', echo=True)
     c.run(f'{ftp}/{sitename}*.crt /etc/ssl/certs/', echo=True)
     c.run(f'{ftp}/{sitename}*.key /etc/ssl/private/', echo=True)
-    # c.run(f'{ftp}/{sitename}*.pem {local_path}/', echo=True)
 
 
 def create_user(c, username=VM_USER_NAME, password=VM_USER_PASS):
