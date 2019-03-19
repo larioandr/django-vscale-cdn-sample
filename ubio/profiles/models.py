@@ -1,8 +1,14 @@
+import io
+
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models import Model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+import pyavagen
+
 
 User = get_user_model()
 
@@ -18,6 +24,8 @@ class Profile(Model):
         max_length=100, default="", verbose_name="Last Name"
     )
 
+    avatar = models.ImageField(upload_to='avatars/', blank=True)
+
     @property
     def email(self):
         return self.user.email
@@ -30,6 +38,18 @@ class Profile(Model):
 
     def __str__(self):
         return self.get_full_name()
+
+
+def generate_avatar(profile):
+    img_io = io.BytesIO()
+    avatar = pyavagen.Avatar(
+        pyavagen.CHAR_SQUARE_AVATAR,
+        size=500,
+        string=profile.get_full_name(),
+        blur_radius=100
+    ).generate().save(img_io, format='PNG', quality=100)
+    img_content = ContentFile(img_io.getvalue(), f'{profile.pk}_avatar.png')
+    return img_content
 
 
 @receiver(post_save, sender=User)

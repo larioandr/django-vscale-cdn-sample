@@ -29,4 +29,4 @@ class SignUpView(FormView):
             recipient_list=[user.email],
             fail_silently=False
         )
-        return redirect('home')
+        return redirect('profile-setup')
