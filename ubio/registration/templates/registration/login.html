@@ -1,0 +1,28 @@
+{% extends "registration/base.html" %}
+{% load bootstrap4 %}
+
+{% block title %}
+Sign In
+{% endblock %}
+
+{% block header %}
+Sign In
+{% endblock %}
+
+{% block card %}
+  <form method="POST" novalidate>
+    {% bootstrap_messages %}
+    {% bootstrap_form form %}
+    {% csrf_token %}
+    <input type="submit" class="btn btn-success btn-block" value="Sign In">
+  </form>
+{% endblock %}
+
+{% block afterCard %}
+  <p class="text-center">
+    <a href="{% url 'signup' %}">Sign Up</a> if you do not have an account yet
+  </p>
+  <p class="text-center">
+    <a class="d-inline-block ml-4" href="{% url 'password_reset' %}">Forgot Password?</a>
+  </p>
+{% endblock %}

@@ -25,6 +25,10 @@ const paths = {
     html: {
         source: `${SOURCE}/**/*.html`
         // destination: `${DESTINATION}/`
+    },
+    images: {
+        source: `${SOURCE}/images/*`,
+        destination: `${DESTINATION}/images`
     }
 };
 
@@ -53,6 +57,12 @@ function html(cb) {
     cb();
 }
 
+function images() {
+    return gulp.src(paths.images.source)
+      .pipe(gulp.dest(paths.images.destination))
+      .pipe(browserSync.stream());
+}
+
 function clean(cb) {
     del([`${paths.styles.destination}`]);
     del([`${paths.scripts.destination}`]);
@@ -65,9 +75,10 @@ function serve() {
     gulp.watch(paths.styles.source, styles);
     gulp.watch(paths.scripts.source, scripts);
     gulp.watch(paths.html.source, html);
+    gulp.watch(paths.images.source, images);
 }
 
-const build = gulp.parallel(styles, scripts);
+const build = gulp.parallel(styles, scripts, images);
 
 exports.build = build;
 exports.clean = clean;

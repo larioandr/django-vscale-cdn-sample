@@ -1,0 +1,25 @@
+{% extends "registration/base.html" %}
+{% load bootstrap4 %}
+
+{% block title %}
+Sign Up
+{% endblock %}
+
+{% block header %}
+Sign Up
+{% endblock %}
+
+{% block card %}
+  <form action="{% url 'signup' %}" method="post" novalidate>
+    {% csrf_token %}
+    {% bootstrap_messages %}
+    {% bootstrap_field form.email placeholder="Enter your valid email" %}
+    {% bootstrap_field form.password1 placeholder="Enter a password" %}
+    {% bootstrap_field form.password2 placeholder="Repeat your password" %}
+    <input type="submit" class="btn btn-success btn-block" id="signUpBtn" value="Sign Up">
+  </form>
+{% endblock %}
+
+{% block afterCard %}
+  <p class="text-center"><a href="{% url 'login' %}">Sign In</a> if you already have an account</p>
+{% endblock %}

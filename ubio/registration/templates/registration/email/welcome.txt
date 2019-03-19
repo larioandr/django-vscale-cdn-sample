@@ -1,0 +1,10 @@
+{% autoescape off %}
+Welcome to uBio service!
+
+Actually, this is a sample project intended to Django-Vscale-CDN integration, but let us think that it is used for biographies sharing.
+
+Please remember to use the email {{ email }} when logging into the system at {{ protocol }}://{{ domain }}{% url 'login' %}
+
+Best wishes from uBio!
+
+{% endautoescape %}

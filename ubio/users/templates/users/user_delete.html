@@ -1,0 +1,16 @@
+{% extends 'ubio/base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}
+  Delete account
+{% endblock %}
+
+{% block body %}
+  <h1 class="display-4 page-header">Delete Account</h1>
+
+  <form action="" method="POST">
+    {% csrf_token %}
+    {% bootstrap_field form.password placeholder="Enter your password" %}
+    <input type="submit" class="btn btn-danger" value="Delete account">
+  </form>
+{% endblock %}

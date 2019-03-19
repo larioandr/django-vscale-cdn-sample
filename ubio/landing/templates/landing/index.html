@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome to uBio!</title>
+  <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+  <div class="container">
+    <a href="{% url 'home' %}" class="navbar-brand">uBio</a>
+    <button class="navbar-toggler" data-toggle="collapse" data-target="#navbarContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a href="#aboutSection" class="nav-link">About</a>
+        </li>
+        <li class="nav-item">
+          <a href="#contacts" class="nav-link">Contacts</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item mr-lg-2">
+          <a href="{% url 'signup' %}" class="nav-link">Sign Up</a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'login' %}" class="nav-link btn btn-outline-secondary">Login</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<section id="heroSection">
+  <div class="dark-overlay">
+    <div class="container py-5">
+      <div class="d-flex flex-column flex-md-row align-items-stretch justify-content-between">
+        <div class="d-none d-sm-block mr-5 pr-5">
+          <h1 class="display-3 mt-5 mb-3 text-white">Welcome to <strong>uBio</strong>!</h1>
+          <h2 class="text-dark mb-5">The best place to share biography notes</h2>
+        </div>
+        <div class="login-card">
+          <h3 class="text-light text-center mb-4">Sign into your account</h3>
+
+          {# TODO: give action and method here! #}
+          <form action="#">
+            <div class="form-group">
+              <input type="email" class="form-control form-control-lg" placeholder="Email">
+            </div>
+            <div class="form-group">
+              <input type="password" class="form-control form-control-lg" placeholder="Password">
+            </div>
+            <div class="form-group">
+              <input type="submit" class="btn btn-outline-light btn-block btn-lg" value="Sign in">
+            </div>
+          </form>
+
+          {# TODO: link to sign up: #}
+          <p class="text-light mt-4 mb-0 text-center">Don't have an account?</p>
+          <p class="mt-0 text-center">
+            <a href="{% url 'signup' %}">Sign Up now!</a>
+          </p>
+          <p class="mt-4 mb-1 text-light text-center">
+            <a href="{% url 'password_reset' %}">Restore password</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="aboutSection">
+  <div class="container">
+    <h2 class="display-4 text-center my-5">About Us</h2>
+    <div class="row align-items-center">
+      <div class="col-12 col-sm-4 col-md-3 col-lg-2 text-center mb-3 mb-sm-0">
+        <img src="{% static 'images/paper.svg' %}" alt="" class="img-fluid" style="max-width: 128px;">
+      </div>
+      <div class="col-12 col-sm-8 col-md-9 col-lg-10">
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Debitis, distinctio dolore, eos fugiat fugit harum illo iure libero maiores provident quas quasi, veritatis voluptatibus? Atque beatae esse ipsa recusandae repellat similique voluptates. Accusantium aliquam asperiores at atque beatae consectetur cum delectus distinctio dolorem doloremque dolorum ea eius eligendi eum eveniet excepturi expedita explicabo id impedit ipsum itaque libero necessitatibus neque odio odit omnis perspiciatis, provident quas quisquam rem repellendus sed soluta totam? Accusamus aspernatur at aut blanditiis commodi debitis eaque earum eius eos eveniet facere fugiat harum magnam magni minima minus numquam omnis, optio quibusdam reprehenderit rerum sunt veritatis voluptatibus?
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contacts">
+  <div class="container py-5">
+    <h2 class="display-4 text-center my-5">Contacts</h2>
+    <div class="row align-items-center">
+      <div class="col-12 col-sm-4 col-md-3 col-lg-2 order-sm-1 text-center mb-3 mb-sm-0">
+        <img src="{% static 'images/map.svg' %}" alt="" class="img-fluid" style="max-width: 128px;">
+      </div>
+      <div class="col-12 col-sm-8 col-md-9 col-lg-10">
+        <p class="font-weight-bold mb-0">Address:</p>
+        <ul class="list-unstyled mt-0">
+          <li>123456, Russia, Moscow</li>
+          <li>Noname str., 1313</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container-fluid py-4 bg-dark">
+    <p class="text-center text-light">
+      Copyright &copy;<span class="current-year"></span>
+    </p>
+  </div>
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script src="{% static 'scripts/app.min.js' %}"></script>
+
+</body>
+</html>

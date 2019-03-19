@@ -1,0 +1,20 @@
+{% extends 'ubio/base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}
+Change Email
+{% endblock %}
+
+{% block header %}
+Change Email
+{% endblock %}
+
+{% block body %}
+  <form action="" method="POST">
+    {% bootstrap_messages %}
+    {% bootstrap_field form.email placeholder="Your email" %}
+    {% bootstrap_field form.password placeholder="Enter your password" %}
+    {% csrf_token %}
+    <input type="submit" class="btn btn-outline-primary" value="Save">
+  </form>
+{% endblock %}

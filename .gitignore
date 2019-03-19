@@ -1,6 +1,7 @@
 .idea/
 .vscode/
 .env
+sendgrid.env
 *.crt
 *.key
 

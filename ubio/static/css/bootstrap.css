@@ -1,5 +1,5 @@
 .sample-card {
-  width: 200px;
+  width: 300px;
   margin: 5px 10px; }
 
 /*!
@@ -7023,3 +7023,51 @@ a.text-dark:hover, a.text-dark:focus {
   .table .thead-dark th {
     color: inherit;
     border-color: #dee2e6; } }
+
+#heroSection {
+  background-color: #5E5694;
+  position: relative;
+  height: 50vh; }
+  @media (min-width: 576px) and (max-width: 767.98px) {
+    #heroSection {
+      height: 100vh; } }
+  @media (max-width: 575.98px) {
+    #heroSection {
+      height: 60vh; } }
+
+.dark-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8); }
+
+.login-card {
+  border: 1px solid #f8f9fa;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  padding: 20px;
+  margin: 10px 10px 10px auto; }
+  @media (max-width: 991.98px) {
+    .login-card {
+      margin: 10px auto 10px auto;
+      width: 100%; } }
+
+.page-body {
+  height: 92vh !important; }
+
+.page-header {
+  margin-top: 100px;
+  margin-bottom: 15px;
+  text-align: center; }
+
+.registration-card, .after-registration-card {
+  margin: 25px auto 10px auto;
+  max-width: 480px; }
+
+@media (max-width: 767.98px) {
+  .registration-card, .after-registration-card {
+    width: 100%;
+    max-width: 100%; } }
