@@ -1,0 +1,11 @@
+{% extends 'ubio/base.html' %}
+
+{% block title %}
+{% endblock %}
+
+{% block body %}
+  <h1 class="text-center">{{ profile.first_name }} {{ profile.last_name }}</h1>
+  {% if profile.pk == user.pk %}
+    <p class="text-center"><a href="{% url 'profile-update' pk=profile.pk %}">Edit profile...</a></p>
+  {% endif %}
+{% endblock %}

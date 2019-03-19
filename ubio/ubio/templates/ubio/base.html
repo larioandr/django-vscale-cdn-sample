@@ -33,7 +33,7 @@
             {{ user.email }}
           </a>
           <div class="dropdown-menu">
-            <a href="#" class="dropdown-item">Edit profile</a>
+            <a href="{% url 'profile-update' pk=user.pk %}" class="dropdown-item">Edit profile</a>
             <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
           </div>
         </li>
@@ -48,6 +48,7 @@
 
     {% block body %}
     {% endblock %}
+
   </div>
 </main>
 
