@@ -47,20 +47,19 @@
         <div class="login-card">
           <h3 class="text-light text-center mb-4">Sign into your account</h3>
 
-          {# TODO: give action and method here! #}
-          <form action="#">
+          <form action="{% url 'login' %}" method="POST">
+            {% csrf_token %}
             <div class="form-group">
-              <input type="email" class="form-control form-control-lg" placeholder="Email">
+              <input type="email" class="form-control form-control-lg" placeholder="Email" name="username">
             </div>
             <div class="form-group">
-              <input type="password" class="form-control form-control-lg" placeholder="Password">
+              <input type="password" class="form-control form-control-lg" placeholder="Password" name="password">
             </div>
             <div class="form-group">
               <input type="submit" class="btn btn-outline-light btn-block btn-lg" value="Sign in">
             </div>
           </form>
 
-          {# TODO: link to sign up: #}
           <p class="text-light mt-4 mb-0 text-center">Don't have an account?</p>
           <p class="mt-0 text-center">
             <a href="{% url 'signup' %}">Sign Up now!</a>
@@ -110,7 +109,7 @@
   <div class="container-fluid py-4 bg-dark">
     <p class="text-center text-light">
       Copyright &copy;<span class="current-year"></span>
-    </p>
+    </p>Ω
   </div>
 </footer>
 

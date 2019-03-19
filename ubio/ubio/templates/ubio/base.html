@@ -6,8 +6,8 @@
   <title>{% block title %}{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
 </head>
-<body>
 
+<body>
 <header class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
   <div class="container">
     <a href="{% url 'home' %}" class="navbar-brand">uBio</a>
@@ -45,10 +45,8 @@
 <main>
   <div class="container page-body">
     <h1 class="display-4 page-header">{% block header %}{% endblock %}</h1>
-
     {% block body %}
     {% endblock %}
-
   </div>
 </main>
 
