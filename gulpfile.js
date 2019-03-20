@@ -43,7 +43,7 @@ function styles() {
 function scripts() {
     return gulp.src(paths.scripts.source)
         .pipe(concat('app.min.js'))
-        .pipe(uglify())
+        // .pipe(uglify())
         .pipe(gulp.dest(paths.scripts.destination))
         .pipe(browserSync.stream());
 }

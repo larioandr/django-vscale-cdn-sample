@@ -25,6 +25,7 @@ class Profile(Model):
     )
 
     avatar = models.ImageField(upload_to='avatars/', blank=True)
+    original_avatar = models.ImageField(upload_to='avatars/', blank=True)
 
     @property
     def email(self):

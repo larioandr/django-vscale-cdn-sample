@@ -1,0 +1,62 @@
+{% extends 'ubio/base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}
+Change avatar
+{% endblock %}
+
+{% block header %}
+Change avatar
+{% endblock %}
+
+{% block body %}
+  <div id="uploadAvatarDialog">
+    <div class="container avatar-upload" style="min-height: 300px; max-width: 320px;">
+
+      <div class="avatar-upload-header">
+        <div class="btn-group">
+          <button class="btn btn-outline-info avatar-file-input mt-2 mt-sm-0">
+            <input type="file" value="Choose file..." accept="image/*">
+            <i class="far fa-file-image mr-1"></i> Choose file
+          </button>
+          <button class="btn btn-outline-info avatar-upload-control avatar-upload-control-rotate-left"><i class="fas fa-undo"></i></button>
+          <button class="btn btn-outline-info avatar-upload-control avatar-upload-control-rotate-right"><i class="fas fa-redo"></i></button>
+        </div>
+      </div>
+
+      <div class="avatar-upload-body">
+        <div class="avatar-upload-msg avatar-file-input" style="height: 300px; width: 300px;">
+          <p>Upload a file to start cropping</p>
+          <input type="file" value="Choose file..." accept="image/*">
+        </div>
+        <div class="avatar-upload-wrap avatar-file-input" style="height: 300px; width: 300px;">
+          <input type="file" value="Choose file..." accept="image/*">
+          <div class="avatar-upload-frame"></div>
+        </div>
+      </div>
+
+      <div class="avatar-upload-footer">
+        <form action="{% url 'avatar-update' pk=profile.pk %}" method="POST" class="avatar-upload-form">
+          {% csrf_token %}
+          <input type="submit" value="Save avatar" class="btn btn-primary avatar-upload-control avatar-upload-control-result">
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+
+
+{% block css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.3/croppie.min.css">
+{% endblock %}
+
+{% block script %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.3/croppie.min.js"></script>
+<script>
+$('#uploadAvatarDialog').avatarUpload({extSize: 300, intSize: 250});
+$('.avatar-upload-form').submit(() => {
+  console.log('Going to submit');
+});
+</script>
+{% endblock %}
