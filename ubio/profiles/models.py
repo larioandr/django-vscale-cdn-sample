@@ -13,6 +13,11 @@ import pyavagen
 User = get_user_model()
 
 
+def get_avatar_full_path(instance, filename):
+    ext = filename.split('.')[-1]
+    return f'public/avatars/{instance.pk}.{ext}'
+
+
 class Profile(Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
@@ -24,8 +29,7 @@ class Profile(Model):
         max_length=100, default="", verbose_name="Last Name"
     )
 
-    avatar = models.ImageField(upload_to='avatars/', blank=True)
-    original_avatar = models.ImageField(upload_to='avatars/', blank=True)
+    avatar = models.ImageField(upload_to=get_avatar_full_path, blank=True)
 
     @property
     def email(self):
@@ -48,8 +52,9 @@ def generate_avatar(profile):
         size=500,
         string=profile.get_full_name(),
         blur_radius=100
-    ).generate().save(img_io, format='PNG', quality=100)
-    img_content = ContentFile(img_io.getvalue(), f'{profile.pk}_avatar.png')
+    )
+    avatar.generate().save(img_io, format='PNG', quality=100)
+    img_content = ContentFile(img_io.getvalue(), f'{profile.pk}.png')
     return img_content
 
 

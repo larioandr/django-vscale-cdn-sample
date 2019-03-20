@@ -57,8 +57,6 @@ def profile_setup(request):
 def avatar_update(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     if request.method == 'POST':
-        print(request.POST)
-        print(request.FILES)
         form = AvatarUpdateForm(profile, request.POST, request.FILES)
         if form.is_valid():
             form.save()

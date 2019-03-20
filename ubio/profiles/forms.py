@@ -17,10 +17,11 @@ class AvatarUpdateForm(Form):
         self.profile = profile
 
     def clean_avatar(self):
-        print('clean_avatar: ', self.cleaned_data['avatar'])
+        print('clean_avatar: ', type(self.cleaned_data['avatar']), self.cleaned_data['avatar'])
         return self.cleaned_data['avatar']
 
     def save(self):
+        self.profile.avatar.delete()
         self.profile.avatar = self.cleaned_data['avatar']
         self.profile.save()
         return self.profile
@@ -32,5 +33,7 @@ class AvatarDeleteForm(ModelForm):
         fields = ()
 
     def save(self, commit=True):
-        self.instance.avatar = self.instance.original_avatar
+        if self.instance.avatar:
+            self.instance.avatar.delete()
+            self.instance.avatar = generate_avatar(self.instance)
         return super().save(commit)
