@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 
 from .models import Profile, generate_avatar
 from .forms import ProfileUpdateForm, AvatarDeleteForm
@@ -80,3 +80,11 @@ def avatar_delete(request, pk):
     form = AvatarDeleteForm(request.POST, instance=profile)
     form.save()
     return redirect('profile-update', pk=profile.pk)
+
+
+@login_required
+@require_GET
+def profile_list(request):
+    return render(request, 'profiles/profile_list.html', context={
+        'profiles': Profile.objects.all()
+    })

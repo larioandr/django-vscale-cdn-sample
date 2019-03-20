@@ -1,0 +1,25 @@
+{% extends 'ubio/base.html' %}
+
+{% block title %}
+Neighbourhood
+{% endblock %}
+
+{% block header %}
+Neighbourhood
+{% endblock %}
+
+{% block body %}
+  {% for profile in profiles %}
+    <div class="card mb-2">
+      <div class="card-body py-2">
+        <div class="d-flex align-items-center">
+          <img src="{{ profile.avatar.url }}" alt="{{ profile.get_full_name }} profile picture" class="img-fluid rounded-circle" style="max-width: 64px; max-height: 64px;">
+          <div class="ml-3 h3 font-weight-lighter">{{ profile.get_full_name }}</div>
+          <div class="ml-auto">
+            <a href="{% url 'profile-detail' pk=profile.pk %}">View</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+{% endblock %}
