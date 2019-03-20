@@ -129,11 +129,11 @@ $registration-card-width-md: 480px;
 //
 // This example will render a button, clicking on which will open the file
 // selection dialog.
-.avatar-file-input {
+.ubio-file-input {
   position: relative;
 }
 
-.avatar-file-input input[type="file"] {
+.ubio-file-input input[type="file"] {
   position: absolute;
   top: 0;
   left: 0;

@@ -9,24 +9,6 @@ class ProfileUpdateForm(ModelForm):
         fields = ('first_name', 'last_name')
 
 
-class AvatarUpdateForm(Form):
-    avatar = ImageField()
-
-    def __init__(self, profile, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.profile = profile
-
-    def clean_avatar(self):
-        print('clean_avatar: ', type(self.cleaned_data['avatar']), self.cleaned_data['avatar'])
-        return self.cleaned_data['avatar']
-
-    def save(self):
-        self.profile.avatar.delete()
-        self.profile.avatar = self.cleaned_data['avatar']
-        self.profile.save()
-        return self.profile
-
-
 class AvatarDeleteForm(ModelForm):
     class Meta:
         model = Profile

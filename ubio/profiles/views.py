@@ -1,10 +1,13 @@
+import base64
+
 from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST
 
 from .models import Profile, generate_avatar
-from .forms import ProfileUpdateForm, AvatarUpdateForm, AvatarDeleteForm
+from .forms import ProfileUpdateForm, AvatarDeleteForm
 
 
 @login_required
@@ -54,19 +57,20 @@ def profile_setup(request):
 
 
 @login_required
+@require_POST
 def avatar_update(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
-    if request.method == 'POST':
-        form = AvatarUpdateForm(profile, request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
+    # Received base64 string starts with 'data:image/jpeg;base64,........'
+    # We need to use 'jpeg' as an extension and everything after base64,
+    # as the image itself:
+    fmt, imgstr = request.POST['avatar'].split(';base64')
+    ext = fmt.split('/')[-1]
+    img = ContentFile(base64.b64decode(imgstr), name=f'{profile.pk}.{ext}')
+    if profile.avatar:
+        profile.avatar.delete()
+    profile.avatar = img
+    profile.save()
     return redirect('profile-update', pk=profile.pk)
-    # else:
-    #     form = AvatarUpdateForm(profile)
-    # return render(request, 'profiles/avatar_update.html', context={
-    #     'profile': profile,
-    #     'form': form,
-    # })
 
 
 @login_required

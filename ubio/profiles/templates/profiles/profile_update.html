@@ -12,18 +12,18 @@ Edit profile
 {% block body %}
   <div class="d-flex">
     <img src="{{ profile.avatar.url }}" alt="avatar" class="img-fluid rounded-circle" style="max-width: 128px; max-height: 128px;">
+
     <div class="d-flex flex-column justify-content-between ml-4 py-3">
-      <form action="{% url 'avatar-update' pk=profile.pk %}" method="POST" id="fileForm" enctype="multipart/form-data">
-        {% csrf_token %}
-        <button class="btn btn-outline-secondary avatar-file-input">
-          <input type="file" value="Choose file..." accept="image/*" name="avatar" id="id_avatar">
-          Change avatar...
+      <form action="{% url 'profile-update' pk=profile.pk %}" method="GET" id="fileForm"
+            data-target="{%  url 'avatar-update' pk=profile.pk %}">
+        <button class="btn btn-outline-secondary ubio-file-input">
+          <input type="file" value="Choose file..." accept="image/*" >
+          Change profile image
         </button>
       </form>
-
       <form action="{% url 'avatar-delete' pk=profile.pk %}" method="POST">
         {% csrf_token %}
-        <button type="submit" class="btn btn-outline-danger">Delete avatar</button>
+        <button type="submit" class="btn btn-outline-danger">Delete profile image</button>
       </form>
     </div>
   </div>
@@ -92,13 +92,31 @@ Edit profile
 
 {% block script %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.3/croppie.min.js"></script>
+
+{% csrf_token %}
 <script>
 const form = $('#fileForm');
 form.find('input[type="file"]').change(function (event) {
   // `this` is an <input type="file"> (not a jQuery object, plain DOM!)
-  if (this.files && this.files[0]) {
-    form.submit();
+  var input = this;
+  if (input.files && input.files[0]) {
+    var data = new FormData(form.get(0));
+    console.log(data);
+    var reader = new FileReader();
+    reader.onload = function (re) {
+      var req = new XMLHttpRequest();
+      req.open("POST", form.attr('data-target'), true);
+      req.onload = function (xe) {
+        console.log(req.status);
+        form.submit();
+      };
+      data.append('avatar', re.target.result);
+      data.append('csrfmiddlewaretoken', $('[name=csrfmiddlewaretoken]').val());
+      req.send(data);
+    };
+    reader.readAsDataURL(input.files[0]);
   }
+  event.preventDefault();
 });
 {#$()#}
 

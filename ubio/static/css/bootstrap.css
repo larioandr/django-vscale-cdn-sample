@@ -7101,10 +7101,10 @@ a.text-dark:hover, a.text-dark:focus {
 .avatar-upload-wrap {
   display: none; }
 
-.avatar-file-input {
+.ubio-file-input {
   position: relative; }
 
-.avatar-file-input input[type="file"] {
+.ubio-file-input input[type="file"] {
   position: absolute;
   top: 0;
   left: 0;
