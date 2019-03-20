@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'registration',
     'users',
     'profiles',
+    'notes',
 ]
 
 MIDDLEWARE = [

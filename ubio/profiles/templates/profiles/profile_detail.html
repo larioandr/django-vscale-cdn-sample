@@ -11,4 +11,6 @@
   {% if profile.pk == user.pk %}
     <p class="text-center"><a href="{% url 'profile-update' pk=profile.pk %}">Edit profile...</a></p>
   {% endif %}
+  <hr>
+  {% include 'notes/partials/notes_card_columns.html' with notes=user.note_set.all %}
 {% endblock %}

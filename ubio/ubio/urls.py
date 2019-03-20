@@ -22,6 +22,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('profiles/', include('profiles.urls')),
     path('registration/', include('registration.urls')),
+    path('notes/', include('notes.urls')),
 ]
 
 if settings.USE_LOCAL_MEDIA:

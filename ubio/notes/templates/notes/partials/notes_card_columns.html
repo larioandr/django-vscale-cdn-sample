@@ -1,0 +1,72 @@
+{% if notes %}
+  <div class="d-flex my-3">
+    <a href="{% url 'note-create' %}" class="btn btn-outline-success">
+      <i class="fas fa-plus"></i> New note
+    </a>
+  </div>
+  <div class="card-columns">
+    {% for note in notes %}
+      <div class="card">
+        <div class="card-body">
+          <div class="card-title">
+            <h5 class="mb-0 text-center">{{ note.title }}</h5>
+            <div class="d-flex justify-content-end align-items-center mt-2">
+              <p class="m-0 text-right font-italic text-muted mr-2"><small>{{ note.owner.profile.get_full_name }}</small></p>
+              <img src="{{ note.owner.profile.avatar.url }}" alt="" class="img-fluid" width="24" height="24">
+            </div>
+          </div>
+          <p class="card-text">{{ note.text }}</p>
+          <div class="d-flex">
+            {% if user.pk == note.owner.pk %}
+              <a href="{% url 'note-update' pk=note.pk %}" class="d-block mr-3">
+                <i class="far fa-edit"></i> Edit
+              </a>
+              <button class="btn btn-link m-0 p-0" data-toggle="modal" data-target="#deleteConfirmDialog-{{ note.pk }}">
+                <i class="far fa-trash-alt"></i> Delete
+              </button>
+
+              <div class="modal" id="deleteConfirmDialog-{{ note.pk }}">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header bg-danger text-light">
+                      <h4 class="modal-title">Confirm delete note</h4>
+                      <button class="close" data-dismiss="modal"><span>&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                      Are you sure you want to delete the note?
+                    </div>
+                    <div class="modal-footer">
+                      <div class="d-flex justify-content-center">
+                        <button class="btn btn-outline-secondary mr-1" data-dismiss="modal">No</button>
+                        <form action="{% url 'note-delete' pk=note.pk %}" method="POST">
+                          {% csrf_token %}
+                          <input type="submit" class="btn btn-danger" value="Yes">
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          {% endif %}
+
+            <div class="ml-auto"></div>
+            {% if not note.public %}
+              <i class="fas fa-lock mr-2"></i>
+            {% else %}
+              <i class="fas fa-bullhorn mr-2"></i>
+            {% endif %}
+            {% if note.document %}
+            <a href="{{ note.document.url }}" class="d-block">
+              <i class="far fa-file-pdf text-secondary"></i>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-center mt-5 text-secondary lead">
+    You have no notes. <a href="{% url 'note-create' %}">Create one?</a>
+  </p>
+{% endif %}

@@ -1,0 +1,19 @@
+{% extends 'ubio/base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}
+Update note
+{% endblock %}
+
+{% block header %}
+Update note
+{% endblock %}
+
+{% block body %}
+  <form action="{% url 'note-update' pk=note.pk %}" method="POST">
+    {% bootstrap_messages %}
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    <input type="submit" class="btn btn-success" value="Save">
+  </form>
+{% endblock %}

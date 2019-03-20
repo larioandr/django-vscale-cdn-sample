@@ -1,0 +1,14 @@
+{% extends 'ubio/base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}
+Biography Notes
+{% endblock %}
+
+{% block header %}
+Biography Notes
+{% endblock %}
+
+{% block body %}
+{% include 'notes/partials/notes_card_columns.html' with notes=notes %}
+{% endblock %}
