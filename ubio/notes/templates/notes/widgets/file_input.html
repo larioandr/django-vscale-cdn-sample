@@ -1,0 +1,9 @@
+<div class="ubio-file d-flex align-items-center">
+  <button class="btn btn-outline-info ubio-file-input mt-2 mt-sm-0">
+    <input type="file" value="Choose file..." {% if widget.accept %}accept="{{ widget.accept }}"{% endif %} name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %}>
+    <i class="far fa-file-image mr-1"></i> Choose file
+  </button>
+  {% if widget.attrs.show_file_name %}
+    <p class="small text-muted ubio-file-name ml-2"></p>
+  {% endif %}
+</div>
