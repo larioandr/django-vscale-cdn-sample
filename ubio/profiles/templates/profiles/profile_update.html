@@ -38,61 +38,11 @@ Edit profile
       <input type="submit" value="Save" class="btn btn-outline-primary">
     </form>
   </div>
-{#  <hr>#}
-{#  <a href="#" class="href" data-toggle="modal" data-target="#uploadAvatarDialog">Upload avatar...</a>#}
-{#  <a href="{% url 'avatar-update' pk=profile.pk %}">Upload avatar...</a>#}
 {% endblock %}
 
 
-{% block modals %}
-{#  <div class="modal" id="uploadAvatarDialog">#}
-{#    <div class="modal-dialog">#}
-{#      <div class="modal-content">#}
-{#        <div class="modal-header">#}
-{#          <h5>Upload Avatar</h5>#}
-{#        </div>#}
-{#        <div class="modal-body">#}
-{#          <div class="container avatar-upload" style="min-height: 200px;">#}
-{#            <div class="avatar-upload-msg avatar-file-input">#}
-{#              <p>Upload a file to start cropping</p>#}
-{#              <input type="file" value="Choose file..." accept="image/*">#}
-{#            </div>#}
-{#            <div class="avatar-upload-wrap avatar-file-input">#}
-{#              <input type="file" value="Choose file..." accept="image/*">#}
-{#              <div class="avatar-upload-frame"></div>#}
-{#            </div>#}
-{#            <div class="d-flex flex-wrap mt-5">#}
-{#              <button class="btn btn-outline-info avatar-file-input mt-2 mt-sm-0">#}
-{#                <input type="file" value="Choose file..." accept="image/*">#}
-{#                <i class="far fa-file-image mr-1"></i> Upload...#}
-{#              </button>#}
-{#              <div class="ml-auto mt-2 mt-sm-0">#}
-{#                <button class="btn btn-outline-info avatar-upload-control avatar-upload-control-rotate-left mr-1"><i class="fas fa-undo"></i></button>#}
-{#                <button class="btn btn-outline-info avatar-upload-control avatar-upload-control-rotate-right"><i class="fas fa-redo"></i></button>#}
-{#              </div>#}
-{#            </div>#}
-{#            <div class="d-flex mt-3">#}
-{#              <form action="{% url 'profile-avatar-upload' %}" method="POST">#}
-{#                {% csrf_token %}#}
-{#                <input type="submit" value="Save avatar" class="btn btn-primary avatar-upload-control avatar-upload-control-result">#}
-{#              </form>#}
-{#            </div>#}
-{#          </div>#}
-{#        </div>#}
-{#      </div>#}
-{#    </div>#}
-{#  </div>#}
-{% endblock %}
-
-
-
-{% block css %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.3/croppie.min.css">
-{% endblock %}
 
 {% block script %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.3/croppie.min.js"></script>
-
 {% csrf_token %}
 <script>
 const form = $('#fileForm');
@@ -118,15 +68,5 @@ form.find('input[type="file"]').change(function (event) {
   }
   event.preventDefault();
 });
-{#$()#}
-
-//const avatarDialog = $('#uploadAvatarDialog');
-//avatarDialog.on('shown.bs.modal', function () {
-//  $(this).avatarUpload('attach', {extSize: 300, intSize: 250});
-//});
-//avatarDialog.on('hidden.bs.modal', function () {
-//  $(this).avatarUpload('detach');
-//});
-
 </script>
 {% endblock %}

@@ -7072,35 +7072,6 @@ a.text-dark:hover, a.text-dark:focus {
     width: 100%;
     max-width: 100%; } }
 
-.avatar-upload .avatar-upload-header {
-  margin: 15px 0; }
-
-.avatar-upload .avatar-upload-body {
-  margin: 20px 0 50px 0; }
-
-.avatar-upload .avatar-upload-footer {
-  margin: 15px 0; }
-
-.avatar-upload-msg {
-  font-size: 1.1rem;
-  font-weight: lighter;
-  color: #6c757d;
-  padding: 100px 50px;
-  border: 1px solid #bbb;
-  text-align: center; }
-
-.avatar-upload-wrap {
-  display: none; }
-
-.avatar-upload-wrap.ready,
-.avatar-upload-msg {
-  display: block;
-  height: 300px; }
-
-.avatar-upload-msg.hidden,
-.avatar-upload-wrap {
-  display: none; }
-
 .ubio-file-input {
   position: relative; }
 

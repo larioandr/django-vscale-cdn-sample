@@ -80,50 +80,15 @@ $registration-card-width-md: 480px;
 //////////////////////////////////
 // Avatar upload dialog
 // Class .avatar-upload-msg
-.avatar-upload {
-  .avatar-upload-header {
-    margin: 15px 0;
-  }
-  .avatar-upload-body {
-    margin: 20px 0 50px 0;
-  }
-  .avatar-upload-footer {
-    margin: 15px 0;
-  }
-}
 
-.avatar-upload-msg {
-  font-size: 1.1rem;
-  font-weight: lighter;
-  color: $secondary;
-  padding: 100px 50px;
-  border: 1px solid #bbb;
-  text-align: center;
-}
-
-.avatar-upload-wrap {
-  display: none;
-}
-
-.avatar-upload-wrap.ready,
-.avatar-upload-msg {
-  display: block;
-  height: 300px;
-}
-
-.avatar-upload-msg.hidden,
-.avatar-upload-wrap {
-  display: none;
-}
-
-// Class .avatar-file-input is added to the components used for file upload on
+// Class .ubio-file-input is added to the components used for file upload on
 // clicking or dragging. These components must have an element
 //   <input type="file">
 // inside them. This file input will span the whole parent element and
 // will be invisible.
 //
 // Example:
-// <button class="btn btn-primary avatar-file-input">
+// <button class="btn btn-primary ubio-file-input">
 //   <input type="file"> Upload File
 // </button>
 //
