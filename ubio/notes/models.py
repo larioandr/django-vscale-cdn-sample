@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -20,4 +22,8 @@ class Note(models.Model):
 
     def __str__(self):
         return f'{self.owner.profile.get_full_name()} note #{self.pk}'
-    
+
+    def get_document_name(self):
+        if self.document:
+            return os.path.basename(self.document.file.name)
+        return ''

@@ -1,3 +1,6 @@
+import time
+
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -25,10 +28,14 @@ def note_update(request, pk):
     note = get_object_or_404(Note, pk=pk)
     if can_edit(request, note):
         if request.method == 'POST':
+            time.sleep(2)
             form = NoteUpdateForm(request.POST, request.FILES, instance=note)
             if form.is_valid():
+                messages.success(request, 'Note updated!')
                 form.save()
-                return redirect('note-list')
+                return redirect('note-update', pk=pk)
+            else:
+                messages.error(request, 'Errors during note update')
         else:
             form = NoteUpdateForm(instance=note)
         return render(request, 'notes/note_update.html', context={
@@ -75,4 +82,19 @@ def get_note_document(request, pk):
                 note.document.file.file,
                 content_type='application/pdf'
             )
+    raise Http404
+
+
+@login_required
+@require_POST
+def note_document_delete(request, pk):
+    note = get_object_or_404(Note, pk=pk)
+    if can_edit(request, note):
+        file_name = note.get_document_name()
+        if note.document:
+            note.document.delete()
+        return render(request, 'notes/partials/file_delete_message.html', context={
+            'alert_class': 'warning',
+            'file_name': file_name,
+        })
     raise Http404
