@@ -10,7 +10,7 @@ Update note
 {% endblock %}
 
 {% block body %}
-  <form action="{% url 'note-update' pk=note.pk %}" method="POST" enctype="multipart/form-data" id="updateNoteForm" target-redirect="{% url 'note-update' pk=note.pk %}" novalidate>
+  <form action="{% url 'note-update' pk=note.pk %}" method="POST" enctype="multipart/form-data" id="updateForm" novalidate>
     {% bootstrap_messages %}
     {% csrf_token %}
     {% bootstrap_field form.title %}
@@ -18,51 +18,11 @@ Update note
     {% bootstrap_field form.public %}
     {% bootstrap_field form.document show_label=False %}
   </form>
-  <form action="{% url 'note-document-delete' pk=note.pk %}" method="POST" id="deleteDocumentForm">
-    {% csrf_token %}
-  </form>
 
-    {% if note.document %}
-      <div id="currentDocumentBox">
-        <p class="my-1">Current document:
-          <a href="{% url 'note-document' pk=note.pk %}" target="_blank">
-            <i class="far fa-file-pdf"></i> {{ note.get_document_name }}
-          </a>
-        </p>
-        <p class="my-1">
-          <button type="submit" class="btn btn-link p-0 m-0 text-danger" form="deleteDocumentForm"><i class="far fa-trash-alt"></i> Delete</button>
-        </p>
-      </div>
-    {% endif %}
+  {% include 'notes/partials/note_document_delete_form.html' with form_id='deleteDocumentForm' note=note %}
 
-    <div class="d-flex mt-3">
-    <button type="submit" class="btn btn-success" form="updateNoteForm" id="updateNoteButton">Save</button>
-    <div class="spinner-border d-none" role="status" id="loadIndicator">
-      <span class="sr-only">Loading...</span>
-    </div>
-  </div>
-{% endblock %}
-
-{% block script %}
-<script>
-var updateNoteForm = $('#updateNoteForm');
-updateNoteForm.submit(function (event) {
-  $('#updateNoteButton').addClass('d-none');
-  $('#loadIndicator').removeClass('d-none');
-});
-
-///////////////////////
-var deleteDocumentForm = $('#deleteDocumentForm');
-deleteDocumentForm.on('submit', function (event) {
-  console.log('sending ', deleteDocumentForm);
-  var req = new XMLHttpRequest();
-  req.onload = function (loadEvent) {
-    $('#currentDocumentBox').html(req.response);
-  };
-  req.open(deleteDocumentForm.attr('method'), deleteDocumentForm.attr('action'), true);
-  req.send(new FormData(deleteDocumentForm.get(0)));
-  event.preventDefault();
-  return false;
-});
-</script>
+  <button type="submit" class="mt-3 btn btn-success ubio-submit" form="updateForm" data-form="#updateForm">
+    <span class="spinner-border spinner-border-sm d-none ubio-submit-indicator" role="status" aria-hidden="true"></span>
+    Save
+  </button>
 {% endblock %}

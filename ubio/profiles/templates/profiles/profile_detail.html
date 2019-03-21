@@ -1,9 +1,11 @@
 {% extends 'ubio/base.html' %}
+{% load bootstrap4 %}
 
 {% block title %}
 {% endblock %}
 
 {% block body %}
+  {% bootstrap_messages %}
   <div class="d-flex mb-4">
     <img src="{{ profile.avatar.url }}" alt="" class="img-fluid mx-auto rounded-circle" style="width: 128px; height: 128px;">
   </div>
@@ -12,5 +14,5 @@
     <p class="text-center"><a href="{% url 'profile-update' pk=profile.pk %}">Edit profile...</a></p>
   {% endif %}
   <hr>
-  {% include 'notes/partials/notes_card_columns.html' with notes=user.note_set.all %}
+  {% include 'notes/partials/notes_card_columns.html' with notes=notes %}
 {% endblock %}

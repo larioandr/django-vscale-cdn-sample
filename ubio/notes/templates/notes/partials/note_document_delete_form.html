@@ -1,0 +1,19 @@
+<div class="ubio-file-vd">
+  <form action="{% url 'note-document-delete' pk=note.pk %}" method="POST" class="ubio-file-vd-form" id="{{ form_id }}">
+    {% csrf_token %}
+  </form>
+  <div class="ubio-file-vd-box">
+    {% if note.document %}
+      <p class="my-1">Current document:
+        <a href="{% url 'note-document' pk=note.pk %}" target="_blank">
+          <i class="far fa-file-pdf"></i> {{ note.get_document_name }}
+        </a>
+      </p>
+      <p class="my-1">
+        <button type="submit" class="btn btn-link p-0 m-0 text-danger" form="{{ form_id }}">
+          <i class="far fa-trash-alt"></i> Delete
+        </button>
+      </p>
+    {% endif %}
+  </div>
+</div>

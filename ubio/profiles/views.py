@@ -2,6 +2,7 @@ import base64
 
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
+from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST, require_GET
@@ -14,7 +15,10 @@ from .forms import ProfileUpdateForm, AvatarDeleteForm
 def profile_detail(request, pk):
     profile = get_object_or_404(Profile, pk=pk)
     return render(request, 'profiles/profile_detail.html', context={
-        'profile': profile
+        'profile': profile,
+        'notes': profile.user.note_set.filter(
+            Q(public=True) | Q(owner=request.user.pk)),
+        'show_add': request.user.pk == profile.user.pk,
     })
 
 
@@ -64,8 +68,6 @@ def avatar_update(request, pk):
     # We need to use 'jpeg' as an extension and everything after base64,
     # as the image itself:
     fmt, imgstr = request.POST['avatar'].split(';base64')
-    print(fmt)
-    print(imgstr)
     ext = fmt.split('/')[-1]
     if ext == 'svg+xml':
         ext = 'svg'

@@ -10,5 +10,6 @@ Biography Notes
 {% endblock %}
 
 {% block body %}
+{% bootstrap_messages %}
 {% include 'notes/partials/notes_card_columns.html' with notes=notes %}
 {% endblock %}

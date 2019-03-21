@@ -10,7 +10,7 @@ class NoteUpdateForm(ModelForm):
         exclude = ('owner',)
         widgets = {
             'document': CustomFileInput(attrs={
-                'accept': '.pdf,image/*',
+                'accept': '.pdf',
                 'show_file_name': True,
                 'btn_class': 'btn-outline-secondary'
             }),

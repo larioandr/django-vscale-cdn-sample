@@ -1,8 +1,10 @@
 {% if notes %}
   <div class="d-flex my-3">
-    <a href="{% url 'note-create' %}" class="btn btn-outline-success">
-      <i class="fas fa-plus"></i> New note
-    </a>
+    {% if show_add %}
+      <a href="{% url 'note-create' %}" class="btn btn-outline-success">
+        <i class="fas fa-plus"></i> New note
+      </a>
+    {% endif %}
   </div>
   <div class="card-columns">
     {% for note in notes %}
@@ -67,7 +69,11 @@
     {% endfor %}
   </div>
 {% else %}
-  <p class="text-center mt-5 text-secondary lead">
-    You have no notes. <a href="{% url 'note-create' %}">Create one?</a>
-  </p>
+    <p class="text-center mt-5 text-secondary lead">
+      {% if show_add %}
+        You have no notes. <a href="{% url 'note-create' %}">Create one?</a>
+      {% else %}
+        There are no notes here <i class="far fa-frown"></i>
+      {% endif %}
+    </p>
 {% endif %}
