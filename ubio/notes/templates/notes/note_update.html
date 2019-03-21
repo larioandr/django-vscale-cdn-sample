@@ -10,7 +10,7 @@ Update note
 {% endblock %}
 
 {% block body %}
-  <form action="{% url 'note-update' pk=note.pk %}" method="POST">
+  <form action="{% url 'note-update' pk=note.pk %}" method="POST" enctype="multipart/form-data">
     {% bootstrap_messages %}
     {% csrf_token %}
     {% bootstrap_form form %}

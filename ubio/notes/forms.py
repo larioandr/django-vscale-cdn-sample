@@ -12,5 +12,6 @@ class NoteUpdateForm(ModelForm):
             'document': CustomFileInput(attrs={
                 'accept': '.pdf,image/*',
                 'show_file_name': True,
+                'btn_class': 'btn-outline-secondary'
             }),
         }

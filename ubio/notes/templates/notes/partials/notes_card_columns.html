@@ -50,14 +50,15 @@
           {% endif %}
 
             <div class="ml-auto"></div>
+
             {% if not note.public %}
-              <i class="fas fa-lock mr-2"></i>
+              <span><i class="fas fa-lock"></i></span>
             {% else %}
-              <i class="fas fa-bullhorn mr-2"></i>
+              <span><i class="fas fa-bullhorn"></i></span>
             {% endif %}
             {% if note.document %}
-            <a href="{{ note.document.url }}" class="d-block">
-              <i class="far fa-file-pdf text-secondary"></i>
+            <a href="{% url 'note-document' pk=note.pk %}" class="ml-3">
+              <i class="far fa-file-pdf"></i>
             </a>
             {% endif %}
           </div>

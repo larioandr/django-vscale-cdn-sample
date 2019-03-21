@@ -1,13 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import Http404, HttpResponseForbidden
+from django.http import Http404, HttpResponseForbidden, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.http import require_POST, require_GET
 
 from .forms import NoteUpdateForm
 from .models import Note
-from .permissions import can_delete, can_edit
+from .permissions import can_delete, can_edit, can_view
 
 User = get_user_model()
 
@@ -25,7 +25,7 @@ def note_update(request, pk):
     note = get_object_or_404(Note, pk=pk)
     if can_edit(request, note):
         if request.method == 'POST':
-            form = NoteUpdateForm(request.POST, instance=note)
+            form = NoteUpdateForm(request.POST, request.FILES, instance=note)
             if form.is_valid():
                 form.save()
                 return redirect('note-list')
@@ -63,3 +63,16 @@ def note_delete(request, pk):
         # note.delete()
         return redirect('note-list')
     return HttpResponseForbidden()
+
+
+@login_required
+@require_GET
+def get_note_document(request, pk):
+    note = get_object_or_404(Note, pk=pk)
+    if can_view(request, note):
+        if note.document:
+            return HttpResponse(
+                note.document.file.file,
+                content_type='application/pdf'
+            )
+    raise Http404
