@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome to uBio!</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"></head>
+<body>
+
+<h1 class="text-center">Welcome to uBio service!</h1>
+
+<p class="text-center">Actually, this is a sample project intended to Django-Vscale-CDN integration, but let us think that it is used for biographies sharing.</p>
+
+<p class="text-center">Please remember to use the email <a href="mailto:{{ email }}">{{ email }}</a> when <a href="{{ protocol }}://{{ domain }}{% url 'login' %}">logging into the system</a></p>
+
+<p class="mt-3 mb-0 pb-0">Happy biography'ing,</p>
+<p class="mt-0 mb-3 pt-0">uBio Team</p>
+
+<hr>
+<p class="text-muted"><small>This email is generated automatically in response to signup at {{ protocol }}://{{ domain }}.
+  If you did not signup, just delete this email.</small></p>
+
+</body>
+</html>

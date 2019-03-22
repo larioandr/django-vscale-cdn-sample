@@ -5,6 +5,11 @@ Actually, this is a sample project intended to Django-Vscale-CDN integration, bu
 
 Please remember to use the email {{ email }} when logging into the system at {{ protocol }}://{{ domain }}{% url 'login' %}
 
-Best wishes from uBio!
+Happy biography'ing,
+uBio Team
+
+--
+This email is generated automatically in response to signup at {{ protocol }}://{{ domain }}.
+If you did not signup, just delete this email.
 
 {% endautoescape %}

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 
     # Third-party applications:
     'bootstrap4',
+    'anymail',
 
     # Application defined in this project:
     'landing',
@@ -147,4 +148,13 @@ MEDIA_URL = '/media/'
 AUTH_USER_MODEL = 'users.User'
 
 # Email service settings
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+DEFAULT_FROM_EMAIL = "support@mail.ubio-staging.voidhost.xyz"
+SERVER_EMAIL = "support1@mail.ubio-staging.voidhost.xyz"
+
+ANYMAIL = {
+    "MAILGUN_API_KEY": 'FILL-ME-WITH-TOKEN',
+    "MAILGUN_SENDER_DOMAIN": 'mail.ubio-staging.voidhost.xyz',
+    "MAILGUN_API_URL": "https://api.eu.mailgun.net/v3",
+}
