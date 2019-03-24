@@ -29,7 +29,7 @@ LOGOUT_REDIRECT_URL = reverse_lazy('home')
 if REMOTE_DEPLOY:
     SECRET_KEY = os.environ['SECRET_KEY']
     ALLOWED_HOSTS = [os.environ['SITENAME']]
-    DEBUG = False
+    DEBUG = True
 else:
     SECRET_KEY = 'ywhdsds2!sl8@yr73@t(torar6m%3pc)56eg-k#mdu*6=#h!fg'
     ALLOWED_HOSTS = []
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # Third-party applications:
     'bootstrap4',
     'anymail',
+    'storages',
 
     # Application defined in this project:
     'landing',
@@ -90,13 +91,30 @@ WSGI_APPLICATION = 'ubio.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
+if os.environ.get('DATABASE_PROVIDER', '') == 'postgresql':
+    DB_NAME = os.environ['DB_NAME']
+    DB_USERNAME = os.environ['DB_USERNAME']
+    DB_PASSWORD = os.environ['DB_PASSWORD']
+    DB_HOST = os.environ['DB_HOST']
+    DB_PORT = os.environ.get('DB_PORT', '')
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': DB_NAME,
+            'USER': DB_USERNAME,
+            'PASSWORD': DB_PASSWORD,
+            'HOST': DB_HOST,
+            'PORT': DB_PORT,
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        },
+    }
 
 
 # Password validation
@@ -131,30 +149,113 @@ USE_L10N = True
 
 USE_TZ = True
 
+AUTH_USER_MODEL = 'users.User'
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static'),
     # ... When add to public bin in production, e.g.:
     # /var/www/static
-]
+# ]
 
-USE_LOCAL_MEDIA = True
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+#################################################################
+# Static files settings
+#
+# -- Environment variables:
+# * STATIC_PROVIDER (opt.), 'selcdn' or 'local'
+#
+# If MEDIA_PROVIDER == 'selcdn', then we need the following variables:
+# * SELCDN_HTTP_HOST - e.g. 239120.selcdn.ru (without https:// or slashes)
+# * SELCDN_USERNAME
+# * SELCDN_PASSWORD
+# * SELCDN_STATIC_BIN (!! without slashes)
+#################################################################
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-AUTH_USER_MODEL = 'users.User'
+if os.environ.get('STATIC_PROVIDER', '') == 'selcdn':
+    SELCDN_HTTP_HOST = os.environ['SELCDN_HTTP_HOST']
+    SELCDN_USERNAME = os.environ['SELCDN_USERNAME']
+    SELCDN_PASSWORD = os.environ['SELCDN_PASSWORD']
+    SELCDN_STATIC_BIN = os.environ['SELCDN_STATIC_BIN']
 
+    STATICFILES_STORAGE = 'ubio.storage.StaticSFTPStorage'
+    STATIC_URL = f'https://{SELCDN_HTTP_HOST}/{SELCDN_STATIC_BIN}/'
+    STATIC_SFTP_STORAGE_ROOT = f'/{SELCDN_STATIC_BIN}/'
+    STATIC_SFTP_STORAGE_HOST = 'ftp.selcdn.ru'
+    STATIC_SFTP_STORAGE_PARAMS = {
+        'username': SELCDN_USERNAME,
+        'password': SELCDN_PASSWORD,
+    }
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'my_static_root')
+    STATIC_URL = '/static/'
+
+
+#################################################################
+# Media settings
+#
+# -- Environment variables:
+# * MEDIA_PROVIDER (opt.), 'selcdn' or 'local'
+#
+# If MEDIA_PROVIDER == 'selcdn', then we need the following variables:
+# * SELCDN_HTTP_HOST - e.g. 239120.selcdn.ru (without https:// or slashes)
+# * SELCDN_USERNAME
+# * SELCDN_PASSWORD
+# * SELCDN_MEDIA_PUBLIC_BIN (!! without slashes)
+# * SELCDN_MEDIA_PRIVATE_BIN (!! without slashes)
+#################################################################
+if os.environ.get('MEDIA_PROVIDER', '') == 'selcdn':
+    SELCDN_HTTP_HOST = os.environ['SELCDN_HTTP_HOST']
+    SELCDN_USERNAME = os.environ['SELCDN_USERNAME']
+    SELCDN_PASSWORD = os.environ['SELCDN_PASSWORD']
+    SELCDN_MEDIA_PUBLIC_BIN = os.environ['SELCDN_MEDIA_PUBLIC_BIN']
+    SELCDN_MEDIA_PRIVATE_BIN = os.environ['SELCDN_MEDIA_PRIVATE_BIN']
+
+    USE_LOCAL_MEDIA = False
+    MEDIA_URL = f'https://{SELCDN_HTTP_HOST}/'
+    DEFAULT_FILE_STORAGE = 'storages.backends.sftpstorage.SFTPStorage'
+    SFTP_STORAGE_HOST = 'ftp.selcdn.ru'
+    SFTP_STORAGE_ROOT = '/'
+    SFTP_STORAGE_PARAMS = {
+        'username': SELCDN_USERNAME,
+        'password': SELCDN_PASSWORD,
+    }
+    MEDIA_PUBLIC_ROOT = f'/{SELCDN_MEDIA_PUBLIC_BIN}/'
+    MEDIA_PRIVATE_ROOT = f'/{SELCDN_MEDIA_PRIVATE_BIN}/'
+else:
+    USE_LOCAL_MEDIA = True
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    MEDIA_URL = '/media/'
+    MEDIA_PUBLIC_ROOT = 'public/'
+    MEDIA_PRIVATE_ROOT = 'private/'
+
+
+#################################################################
 # Email service settings
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
-DEFAULT_FROM_EMAIL = "support@mail.ubio-staging.voidhost.xyz"
-SERVER_EMAIL = "support1@mail.ubio-staging.voidhost.xyz"
+#
+# -- Environment variables:
+# * EMAIL_DOMAIN (opt.)
+# * EMAIL_FROM (opt.), e.g. 'support@x.y.z'
+# * EMAIL_PROVIDER (opt.), e.g. 'mailgun' or 'local'
+# * EMAIL_FROM_SERVER (opt., if provider is mailgun)
+# * MAILGUN_TOKEN
+# * MAILGUN_API_URL (opt., by default - euro domain)
+#################################################################
+EMAIL_DOMAIN = os.environ.get('EMAIL_DOMAIN', 'mail.ubio-local.voidhost.xyz')
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_FROM', f'support@{EMAIL_DOMAIN}')
 
-ANYMAIL = {
-    "MAILGUN_API_KEY": 'FILL-ME-WITH-TOKEN',
-    "MAILGUN_SENDER_DOMAIN": 'mail.ubio-staging.voidhost.xyz',
-    "MAILGUN_API_URL": "https://api.eu.mailgun.net/v3",
-}
+if os.environ.get('EMAIL_PROVIDER', '') == 'mailgun':
+    EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+    SERVER_EMAIL = os.environ.get('SERVER_EMAIL_FROM', f'server@{EMAIL_DOMAIN}')
+
+    ANYMAIL = {
+        "MAILGUN_API_KEY": os.environ['MAILGUN_TOKEN'],
+        "MAILGUN_SENDER_DOMAIN": EMAIL_DOMAIN,
+        "MAILGUN_API_URL": os.environ.get(
+            'MAILGUN_API_URL', "https://api.eu.mailgun.net/v3")
+    }
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

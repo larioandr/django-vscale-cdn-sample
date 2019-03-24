@@ -1,5 +1,6 @@
 import io
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.db import models
@@ -15,7 +16,7 @@ User = get_user_model()
 
 def get_avatar_full_path(instance, filename):
     ext = filename.split('.')[-1]
-    return f'public/avatars/{instance.pk}.{ext}'
+    return f'{settings.MEDIA_PUBLIC_ROOT}/avatars/{instance.pk}.{ext}'
 
 
 class Profile(Model):

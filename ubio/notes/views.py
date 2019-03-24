@@ -1,3 +1,5 @@
+import mimetypes
+import os
 import time
 
 from django.contrib import messages
@@ -105,10 +107,11 @@ def get_note_document(request, pk):
     note = get_object_or_404(Note, pk=pk)
     if can_view(request, note):
         if note.document:
-            return HttpResponse(
-                note.document.file.file,
-                content_type='application/pdf'
-            )
+            filename = os.path.basename(note.document.name)
+            mtype = mimetypes.guess_type(filename)[0]
+            response = HttpResponse(note.document.file, content_type=mtype)
+            response['Content-Disposition'] = f'filename={filename}'
+            return response
     raise Http404
 
 

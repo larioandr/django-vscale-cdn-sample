@@ -1,7 +1,7 @@
 .idea/
 .vscode/
-.env
-sendgrid.env
+/.env
+/*.env
 *.crt
 *.key
 ubio/media/

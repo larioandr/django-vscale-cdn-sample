@@ -1,5 +1,6 @@
 import os
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -9,7 +10,9 @@ User = get_user_model()
 
 def get_note_full_path(instance, filename):
     ext = filename.split('.')[-1]
-    return f'private/notes/NOTE_{instance.owner.pk}_{instance.pk}.{ext}'
+    root = settings.MEDIA_PRIVATE_ROOT
+    name = f'note_{instance.owner.pk}_{instance.pk}'
+    return f'{root}/notes/{name}.{ext}'
 
 
 # noinspection PyUnresolvedReferences
