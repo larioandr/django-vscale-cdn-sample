@@ -7,7 +7,10 @@ cache:
 python: "3.6"
 
 install:
-  - "pip install fabric2 requests"
+  - "pip install fabric2 requests nose"
+
+script:
+  - "nose ubio/"
 
 deploy:
   provider: script
