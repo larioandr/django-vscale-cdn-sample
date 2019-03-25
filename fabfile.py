@@ -303,7 +303,7 @@ def update_repo(c, env):
         c.run(f'.venv/bin/pip install --upgrade pip', echo=True)
         c.run(f'.venv/bin/pip install -r requirements.txt', echo=True)
         with c.cd(env.DJANGO_PROJECT_NAME):
-            manage = '../.venv/bin/python manage'
+            manage = '../.venv/bin/python manage.py'
             env_cmd = f'export $(cat ../.env | xargs)'
             c.run(f'{env_cmd}; {manage} collectstatic --noinput')
             c.run(f'{env_cmd}; {manage} migrate --noinput', echo=True)
