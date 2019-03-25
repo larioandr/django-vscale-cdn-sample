@@ -7,108 +7,172 @@ import paramiko
 import requests
 import json
 
-
 # Disable warnings coming from Paramiko package:
 warnings.filterwarnings(action='ignore', module='.*paramiko.*')
 
+DEFAULTS = {
+    'VM_PLAN': 'small',
+    'VM_LOCATION': 'msk0',
+    'VM_IMAGE': 'ubuntu_18.04_64_001_master',
+    'VM_USER_NAME': 'ubioadm',
+    'STATIC_PROVIDER': 'selcdn',
+    'MEDIA_PROVIDER': 'selcdn',
+    'CDN_FTP_HOST': 'ftp.selcdn.ru',
+    'REPO_URL': 'https://github.com/larioandr/django-vscale-cdn-sample.git',
+    'REPO_BRANCH': 'master',
+    'DB_PROVIDER': 'postgresql',
+    'DB_NAME': 'ubiodb',
+    'DB_USER': 'ubiodbadm',
+    'DB_HOST': 'localhost',
+    'DB_PORT': '',
+    'CERT_YEAR': '2019',
+    'MAX_BODY_SIZE': '15M',
+    'EMAIL_PROVIDER': 'mailgun',
+}
 
-SITENAME = os.environ['SITENAME']
-VSCALE_TOKEN = os.environ['VSCALE_TOKEN']
-VM_ROOT_PASS = os.environ['VM_ROOT_PASS']
-VM_USER_NAME = os.environ['VM_USER_NAME']
-VM_USER_PASS = os.environ['VM_USER_PASS']
-USE_HTTPS = os.environ['USE_HTTPS']
-CDN_FTP_SERVER = os.environ.get('CDN_FTP_SERVER', 'ftp.selcdn.ru')
-CDN_USER = os.environ['CDN_USER']
-CDN_PASS = os.environ['CDN_PASS']
-CDN_CERT_PATH = os.environ['CDN_CERT_PATH']
-REPO_URL = os.environ['REPO_URL']
-BRANCH = os.environ['REPO_BRANCH']
-DB_NAME = os.environ['DB_NAME']
-DB_USER = os.environ['DB_USER']
-DB_PASS = os.environ['DB_PASS']
-CERT_YEAR = os.environ['HTTPS_CERT_YEAR']
-MAX_BODY_SIZE = os.environ['MAX_BODY_SIZE']
 
-####
-# These vars are not used inside scripts, but being written into .env on
-# deploy server:
-# * SECRET_KEY (defined in local .env, not indexed by git)
-####
+class Environment:
+    def __init__(self, prefix=''):
+        self._prefix = prefix
+        self.SITENAME = self.env('SITENAME')
+        self.VSCALE_TOKEN = self.env('VSCALE_TOKEN')
+        self.VM_PLAN = self.env('VM_PLAN')
+        self.VM_LOCATION = self.env('VM_LOCATION')
+        self.VM_IMAGE = self.env('VM_IMAGE')
+        self.VM_ROOT_PASS = self.env('VM_ROOT_PASS')
+        self.VM_USER_NAME = self.env('VM_USER_NAME')
+        self.VM_USER_PASS = self.env('VM_USER_PASS')
+        self.CDN_FTP_HOST = self.env('CDN_FTP_HOST')
+        self.CDN_HTTP_HOST = self.env('CDN_HTTP_HOST')
+        self.CDN_SYS_USER = self.env('CDN_SYS_USER')
+        self.CDN_SYS_PASS = self.env('CDN_SYS_PASS')
+        self.CDN_USER = self.env('CDN_USER')
+        self.CDN_PASS = self.env('CDN_PASS')
+        self.CDN_CERT_PATH = self.env('CDN_CERT_PATH')
+        self.CDN_STATIC_BIN = self.env('CDN_STATIC_BIN')
+        self.CDN_MEDIA_PUBLIC_BIN = self.env('CDN_MEDIA_PUBLIC_BIN')
+        self.CDN_MEDIA_PRIVATE_BIN = self.env('CDN_MEDIA_PRIVATE_BIN')
+        self.STATIC_PROVIDER = self.env('STATIC_PROVIDER')
+        self.MEDIA_PROVIDER = self.env('MEDIA_PROVIDER')
+        self.REPO_URL = self.env('REPO_URL')
+        self.BRANCH = self.env('REPO_BRANCH')
+        self.DB_PROVIDER = self.env('DB_PROVIDER')
+        self.DB_NAME = self.env('DB_NAME')
+        self.DB_USER = self.env('DB_USER')
+        self.DB_PASS = self.env('DB_PASS')
+        self.DB_HOST = self.env('DB_HOST')
+        self.DB_PORT = self.env('DB_PORT')
+        self.CERT_YEAR = self.env('CERT_YEAR')
+        self.MAX_BODY_SIZE = self.env('MAX_BODY_SIZE')
+        self.EMAIL_PROVIDER = self.env('EMAIL_PROVIDER')
+        self.EMAIL_DOMAIN = self.env('EMAIL_DOMAIN')
+        self.EMAIL_FROM = self.env('EMAIL_FROM')
+        self.SERVER_EMAIL_FROM = self.env('SERVER_EMAIL_FROM')
+        self.MAILGUN_TOKEN = self.env('MAILGUN_TOKEN')
+        self.MAILGUN_API_URL = self.env('MAILGUN_API_URL')
+        self.SECRET_KEY = self.env('SECRET_KEY')
 
-DOMAIN = '.'.join(SITENAME.split('.')[-2:])
+        # Derivatives and constants:
+        self.DOMAIN = '.'.join(self.SITENAME.split('.')[-2:])
+        self.UBUNTU_PACKAGES = (
+            'python3.6', 'nginx', 'postgresql', 'sshpass', 'git', 'vim',
+            'python3-venv',
+        )
+        self.DJANGO_PROJECT_NAME = 'ubio'
 
-INSTALL_PACKAGES = (
-    'python3.6', 'nginx', 'postgresql', 'sshpass', 'git', 'vim',
-    'python3-venv',
-)
-DJANGO_PROJECT_NAME = 'ubio'
+    def env(self, name):
+        full_name = f'{self._prefix}_{name}' if self._prefix else name
+        if full_name in os.environ:
+            return os.environ[full_name]
+        elif name in os.environ:
+            return os.environ[name]
+        return DEFAULTS[name]
+
+
+ENVIRONMENT_PREFIXES = {
+    'staging': 'STAGING',
+    'production': 'PRODUCTION',
+}
+
+
+def environment(env_type='staging'):
+    return Environment(ENVIRONMENT_PREFIXES[env_type])
 
 
 @fabric.task
-def create_server(ctx, name):
+def create_server(ctx, name, envtype):
     assert not isinstance(ctx, fabric.Connection)  # no support fo --host arg
 
+    env = environment(envtype)
+
     # 1) Create new scalet, bind DNS to it and add address to known_hosts:
-    address = create_scalet(name)
-    update_dns(address)
+    address = create_scalet(name, env=env)
+    update_dns(address, env=env)
 
     # 2) Establish a connection with root access rights to install software,
     # create admin user and copy certificates:
     root = fabric.Connection(address, user='root', connect_kwargs={
-        'password': VM_ROOT_PASS
+        'password': env.VM_ROOT_PASS
     })
     root.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    install_system_packages(root)
-    copy_certificates(root)
-    create_user(root)
+    install_system_packages(root, env=env)
+    copy_certificates(root, env=env)
+    create_user(root, env=env)
 
     # 3) Establish a connection on part of the non-root user (site admin),
     # prepare home folder, clone the repository and setup the database:
-    user = fabric.Connection(address, user=VM_USER_NAME, connect_kwargs={
-        'password': VM_USER_PASS
+    user = fabric.Connection(address, user=env.VM_USER_NAME, connect_kwargs={
+        'password': env.VM_USER_PASS
     })
     user.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    clone_repo(user)
-    write_env(user)
-    create_database(user)
+    clone_repo(user, env=env)
+    write_env(user, env=env)
+    create_database(user, env=env)
 
     # 4) On part of root, create configuration files and services:
-    create_gunicorn_service(root)
-    create_nginx_config(root)
+    create_gunicorn_service(root, env=env)
+    create_nginx_config(root, env=env)
 
     # 5) Update the repository, make migrations, install python packages.
     # Then tart services (on part of root).
-    update_repo(user)
-    gunicorn_service(root, 'start')
+    update_repo(user, env=env)
+    gunicorn_service(root, 'start', env=env)
     nginx_service(root, 'restart')
 
 
+# noinspection PyUnusedLocal
 @fabric.task
-def update(ctx):
-    root = fabric.Connection(SITENAME, user='root', connect_kwargs={
-        'password': VM_ROOT_PASS
-    })
-    user = fabric.Connection(SITENAME, user=VM_USER_NAME, connect_kwargs={
-        'password': VM_USER_PASS
-    })
+def update(ctx, envtype):
+    assert not isinstance(ctx, fabric.Connection)  # no support fo --host arg
+    env = environment(envtype)
+
+    root = fabric.Connection(
+        env.SITENAME, user='root', connect_kwargs={
+            'password': env.VM_ROOT_PASS
+        }
+    )
+    user = fabric.Connection(
+        env.SITENAME, user=env.VM_USER_NAME, connect_kwargs={
+            'password': env.VM_USER_PASS
+        }
+    )
     for conn in (root, user):
         conn.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     # Load changes, write .env:
-    write_env(user)
-    update_repo(user)
+    write_env(user, env)
+    update_repo(user, env)
 
     # Update services configurations and restart them:
-    gunicorn_service(root, 'stop')
+    gunicorn_service(root, 'stop', env)
     nginx_service(root, 'stop')
-    create_gunicorn_service(root)
-    create_nginx_config(root)
-    gunicorn_service(root, 'start')
+    create_gunicorn_service(root, env)
+    create_nginx_config(root, env)
+    gunicorn_service(root, 'start', env)
     nginx_service(root, 'start')
 
 
-def vscale(url, method='get', data=None, token=VSCALE_TOKEN):
+def vscale(url, method='get', data=None, token=''):
     fn = getattr(requests, method)
     headers = {'X-Token': token}
     if data:
@@ -121,36 +185,45 @@ def vscale(url, method='get', data=None, token=VSCALE_TOKEN):
     raise RuntimeError(response)
 
 
-def create_scalet(name, rplan='small', location='msk0', password=VM_ROOT_PASS):
+def create_scalet(name, env):
     print('[FAB] * create_scalet()')
     response = vscale('https://api.vscale.io/v1/scalets', method='post', data={
-        'make_from': 'ubuntu_18.04_64_001_master',
+        'make_from': env.VM_IMAGE,
         'name': name,
-        'rplan': rplan,
+        'rplan': env.VM_PLAN,
         'do_start': True,
-        'password': password,
-        'location': location,
-    })
+        'password': env.VM_ROOT_PASS,
+        'location': env.VM_LOCATION,
+    }, token=env.VSCALE_TOKEN)
     ctid = response['ctid']
     while response['status'] != 'started':
         time.sleep(1)
-        response = vscale(f'https://api.vscale.io/v1/scalets/{ctid}')
+        response = vscale(
+            f'https://api.vscale.io/v1/scalets/{ctid}',
+            token=env.VSCALE_TOKEN
+        )
     return response['public_address']['address']
 
 
-def update_dns(address, domain=DOMAIN, sitename=SITENAME, ttl=300):
+def update_dns(address, env, ttl=300):
     print('[FAB] * update_dns()')
     # 1) First we find the domain ID:
-    response = vscale('https://api.vscale.io/v1/domains')
-    dom_id = [rec['id'] for rec in response if rec['name'] == domain][0]
+    response = vscale(
+        'https://api.vscale.io/v1/domains',
+        token=env.VSCALE_TOKEN
+    )
+    dom_id = [rec['id'] for rec in response if rec['name'] == env.DOMAIN][0]
 
     # 2) Then we list all domain records related to this domain and try to find
     # the record related to our site:
-    all_sites = vscale(f'https://api.vscale.io/v1/domains/{dom_id}/records')
+    all_sites = vscale(
+        f'https://api.vscale.io/v1/domains/{dom_id}/records',
+        token=env.VSCALE_TOKEN
+    )
 
     # 3) Since we need both sitename (e.g. example.com) and www.sitename,
     # we iterate through these names in cycle:
-    for name in (sitename, f'www.{sitename}'):
+    for name in (env.SITENAME, f'www.{env.SITENAME}'):
         records = [rec for rec in all_sites
                    if rec['name'] == name and rec['type'] in {'A', 'CNAME'}]
         assert 0 <= len(records) <= 1
@@ -165,7 +238,7 @@ def update_dns(address, domain=DOMAIN, sitename=SITENAME, ttl=300):
         # 4) If there is no site records, we create one:
         if not records:
             vscale(f'https://api.vscale.io/v1/domains/{dom_id}/records/',
-                   method='post', data=data)
+                   method='post', data=data, token=env.VSCALE_TOKEN)
             continue
 
         # 5) If name was already registered, we need to find this record and
@@ -175,67 +248,72 @@ def update_dns(address, domain=DOMAIN, sitename=SITENAME, ttl=300):
         rid = records[0]['id']
         if records[0]['type'] != data['type']:
             vscale(f'https://api.vscale.io/v1/domains/{dom_id}/records/{rid}',
-                   method='delete')
+                   method='delete', token=env.VSCALE_TOKEN)
             vscale(f'https://api.vscale.io/v1/domains/{dom_id}/records/',
-                   method='post', data=data)
+                   method='post', data=data, token=env.VSCALE_TOKEN)
         else:
             vscale(f'https://api.vscale.io/v1/domains/{dom_id}/records/{rid}',
-                   method='put', data=data)
+                   method='put', data=data, token=env.VSCALE_TOKEN)
 
 
-def copy_certificates(
-        c, user=CDN_USER, password=CDN_PASS, ftp_server=CDN_FTP_SERVER,
-        cert_path=CDN_CERT_PATH, sitename=SITENAME):
-    ftp = f'SSHPASS={password} sshpass -e sftp {user}@{ftp_server}:/{cert_path}'
+def copy_certificates(c, env):
     local_path = f'/etc/ssl/'
+    remote_path = f'{env.CDN_SYS_USER}@{env.CDN_FTP_HOST}:/{env.CDN_CERT_PATH}'
+    ftp = f'SSHPASS={env.CDN_SYS_PASS} sshpass -e sftp {remote_path}'
 
     c.run('mkdir -p ~/.ssh', echo=True)
-    c.run(f'ssh-keyscan -H {ftp_server} >> ~/.ssh/known_hosts', echo=True)
+    c.run(f'ssh-keyscan -H {env.CDN_FTP_HOST} >> ~/.ssh/known_hosts', echo=True)
     c.run(f'mkdir -p {local_path}', echo=True)
-    c.run(f'{ftp}/{sitename}*.crt /etc/ssl/certs/', echo=True)
-    c.run(f'{ftp}/{sitename}*.key /etc/ssl/private/', echo=True)
+    c.run(f'{ftp}/{env.SITENAME}*.crt /etc/ssl/certs/', echo=True)
+    c.run(f'{ftp}/{env.SITENAME}*.key /etc/ssl/private/', echo=True)
 
 
-def create_user(c, username=VM_USER_NAME, password=VM_USER_PASS):
-    if c.run(f'adduser --quiet --disabled-password --gecos "" {username}',
-             warn=True, echo=True).exited == 0:
-        c.run(f'echo "{username}:{password}" | chpasswd')
-        c.run(f'echo "{username} ALL=(postgres) NOPASSWD: ALL" >> /etc/sudoers')
+def create_user(c, env):
+    adduser = c.run(
+        f'adduser --quiet --disabled-password --gecos "" {env.VM_USER_NAME}',
+        warn=True, echo=True
+    )
+    if adduser.exited == 0:
+        c.run(f'echo "{env.VM_USER_NAME}:{env.VM_USER_PASS}" | chpasswd')
+        c.run(f'echo "{env.VM_USER_NAME} ALL=(postgres) NOPASSWD: ALL" >> '
+              f'/etc/sudoers')
 
 
-def install_system_packages(c, packages=INSTALL_PACKAGES):
-    packages_string = ' '.join(packages)
+def install_system_packages(c, env):
+    packages_string = ' '.join(env.UBUNTU_PACKAGES)
     c.run(f'apt update; apt-get -y install {packages_string}', echo=True)
 
 
-def clone_repo(c, user=VM_USER_NAME, repo=REPO_URL, sitename=SITENAME):
-    c.run(f'mkdir -p /home/{user}/sites', echo=True)
-    with c.cd(f'/home/{user}/sites'):
-        c.run(f'rm -rf {sitename}', echo=True)
-        c.run(f'git clone {repo} {sitename}', echo=True)
-        with c.cd(sitename):
-            c.run(f'python3 -m venv --prompt {sitename} .venv', echo=True)
+def clone_repo(c, env):
+    c.run(f'mkdir -p /home/{env.VM_USER_NAME}/sites', echo=True)
+    with c.cd(f'/home/{env.VM_USER_NAME}/sites'):
+        c.run(f'rm -rf {env.SITENAME}', echo=True)
+        c.run(f'git clone {env.REPO_URL} {env.SITENAME}', echo=True)
+        with c.cd(env.SITENAME):
+            c.run(f'python3 -m venv --prompt {env.SITENAME} .venv', echo=True)
 
 
-def update_repo(c, user=VM_USER_NAME, branch=BRANCH, sitename=SITENAME,
-                proj=DJANGO_PROJECT_NAME):
-    with c.cd(f'/home/{user}/sites/{sitename}'):
-        c.run(f'git branch --set-upstream-to origin/{branch}', echo=True)
+def update_repo(c, env):
+    with c.cd(f'/home/{env.VM_USER_NAME}/sites/{env.SITENAME}'):
+        c.run(f'git branch --set-upstream-to origin/{env.BRANCH}', echo=True)
         c.run(f'git fetch', echo=True)
-        c.run(f'git checkout --force {branch}', echo=True)
-        c.run(f'git reset --hard `git log --all -n 1 --format=%H {branch}`',
+        c.run(f'git checkout --force {env.BRANCH}', echo=True)
+        c.run(f'git reset --hard `git log --all -n 1 --format=%H {env.BRANCH}`',
               echo=True)
         c.run(f'.venv/bin/pip install --upgrade pip', echo=True)
         c.run(f'.venv/bin/pip install -r requirements.txt', echo=True)
-        with c.cd(proj):
-            # TODO: set STATIC_ROOT in deployment and uncomment:
-            # c.run('../.venv/bin/python manage.py collectstatic --noinput')
+        with c.cd(env.DJANGO_PROJECT_NAME):
+            c.run('../.venv/bin/python manage.py collectstatic --noinput')
             c.run('../.venv/bin/python manage.py migrate --noinput', echo=True)
 
 
-def create_database(c, db=DB_NAME, user=DB_USER, password=DB_PASS):
+def create_database(c, env):
     def psql(cmd):
         return f'sudo -u postgres psql -qc "{cmd};"'
+
+    db = env.DB_NAME
+    user = env.DB_USER
+    password = env.DB_PASS
 
     # noinspection SqlNoDataSourceInspection,SqlDialectInspection
     c.run(psql(f"CREATE DATABASE {db}"), warn=True, echo=True)
@@ -248,56 +326,84 @@ def create_database(c, db=DB_NAME, user=DB_USER, password=DB_PASS):
     c.run(psql(f"GRANT ALL PRIVILEGES ON DATABASE {db} TO {user}"), echo=True)
 
 
-def create_gunicorn_service(c, user=VM_USER_NAME, sitename=SITENAME):
+def create_gunicorn_service(c, env):
     assignments = {
-        'SITENAME': sitename,
-        'USERNAME': user,
-        'PROJNAME': DJANGO_PROJECT_NAME,
+        'SITENAME': env.SITENAME,
+        'USERNAME': env.VM_USER_NAME,
+        'PROJNAME': env.DJANGO_PROJECT_NAME,
     }
     pattern = ";".join([f's/{k}/{v}/g' for k, v in assignments.items()])
-    c.run(f'cat /home/{user}/sites/{sitename}/deploy/gunicorn.service | '
-          f'sed "{pattern}" > /etc/systemd/system/gunicorn-{sitename}.service',
+    deploy_path = f'/home/{env.VM_USER_NAME}/sites/{env.SITENAME}/deploy/'
+    service_name = f'gunicorn-{env.SITENAME}'
+    c.run(f'cat {deploy_path}/gunicorn.service | '
+          f'sed "{pattern}" > /etc/systemd/system/{service_name}.service',
           echo=True)
-    c.run(f'systemctl daemon-reload; systemctl enable gunicorn-{sitename}',
+    c.run(f'systemctl daemon-reload; systemctl enable {service_name}',
           echo=True)
 
 
-def create_nginx_config(c, user=VM_USER_NAME, sitename=SITENAME,
-                        cert_year=CERT_YEAR, max_body_size=MAX_BODY_SIZE):
+def create_nginx_config(c, env):
     assignments = {
-        'SITENAME': sitename,
-        'MAX_BODY_SIZE': max_body_size,
-        'YEAR': cert_year,
+        'SITENAME': env.SITENAME,
+        'MAX_BODY_SIZE': env.MAX_BODY_SIZE,
+        'YEAR': env.CERT_YEAR,
     }
+
+    user = env.VM_USER_NAME
+    site = env.SITENAME
     pattern = ";".join([f's/{k}/{v}/g' for k, v in assignments.items()])
-    c.run(f'cat /home/{user}/sites/{sitename}/deploy/sitename.nginx |'
-          f'sed "{pattern}" > /etc/nginx/sites-available/{sitename}',
+
+    c.run(f'cat /home/{user}/sites/{site}/deploy/sitename.nginx |'
+          f'sed "{pattern}" > /etc/nginx/sites-available/{site}',
           echo=True)
-    c.run(f'cat /home/{user}/sites/{sitename}/deploy/www.sitename.nginx |'
-          f'sed "{pattern}" > /etc/nginx/sites-available/www.{sitename}',
+    c.run(f'cat /home/{user}/sites/{site}/deploy/www.sitename.nginx |'
+          f'sed "{pattern}" > /etc/nginx/sites-available/www.{site}',
           echo=True)
     with c.cd('/etc/nginx/sites-available'):
-        c.run(f'ln -frs {sitename} ../sites-enabled/{sitename}', echo=True)
-        c.run(f'ln -frs www.{sitename} ../sites-enabled/www.{sitename}',
+        c.run(f'ln -frs {site} ../sites-enabled/{site}', echo=True)
+        c.run(f'ln -frs www.{site} ../sites-enabled/www.{site}',
               echo=True)
         c.run(f'rm -f ../sites-enabled/default', echo=True)
 
 
-def gunicorn_service(c, cmd, sitename=SITENAME):
-    c.run(f'systemctl {cmd} gunicorn-{sitename}', echo=True)
+def gunicorn_service(c, cmd, env):
+    c.run(f'systemctl {cmd} gunicorn-{env.SITENAME}', echo=True)
 
 
 def nginx_service(c, cmd):
     c.run(f'systemctl {cmd} nginx', echo=True)
 
 
-def write_env(c, user=VM_USER_NAME, sitename=SITENAME):
+def write_env(c, env):
     assignments = {
         'DJANGO_REMOTE': 1,
-        'SITENAME': SITENAME,
-        'SECRET_KEY': f'\'{os.environ["SECRET_KEY"]}\'',
+        'SITENAME': env.SITENAME,
+        'SECRET_KEY': env.SECRET_KEY,
+        'STATIC_PROVIDER': env.STATIC_PROVIDER,
+        'MEDIA_PROVIDER': env.MEDIA_PROVIDER,
+        'SELCDN_HTTP_HOST': env.CDN_HTTP_HOST,
+        'SELCDN_USERNAME': env.CDN_USER,
+        'SELCDN_PASSWORD': env.CDN_PASS,
+        'SELCDN_STATIC_BIN': env.CDN_STATIC_BIN,
+        'SELCDN_MEDIA_PRIVATE_BIN': env.CDN_MEDIA_PRIVATE_BIN,
+        'SELCDN_MEDIA_PUBLIC_BIN': env.CDN_MEDIA_PUBLIC_BIN,
+        'EMAIL_PROVIDER': env.EMAIL_PROVIDER,
+        'EMAIL_DOMAIN': env.EMAIL_DOMAIN,
+        'EMAIL_FROM': env.EMAIL_FROM,
+        'SERVER_EMAIL_FROM': env.SERVER_EMAIL_FROM,
+        'MAILGUN_TOKEN': env.MAILGUN_TOKEN,
+        'MAILGUN_API_URL': env.MAILGUN_API_URL,
+        'DATABASE_PROVIDER': env.DB_PROVIDER,
+        'DB_NAME': env.DB_NAME,
+        'DB_USERNAME': env.DB_USER,
+        'DB_PASSWORD': env.DB_PASS,
+        'DB_HOST': env.DB_HOST,
+        'DB_PORT': env.DB_PORT,
     }
-    with c.cd(f'/home/{user}/sites/{sitename}'):
+
+    with c.cd(f'/home/{env.VM_USER_NAME}/sites/{env.SITENAME}'):
         c.run('rm -f .env && touch .env', echo=True)
         for var, value in assignments.items():
+            if var == 'SECRET_KEY':
+                value = f"'{value}'"  # need to enclose in quotes this
             c.run(f'echo {var}={value} >> .env')
