@@ -32,6 +32,11 @@ class Profile(Model):
 
     avatar = models.ImageField(upload_to=get_avatar_full_path, blank=True)
 
+    date_joined = models.DateTimeField(
+        verbose_name='Date joined',
+        auto_now_add=True
+    )
+
     @property
     def email(self):
         return self.user.email
