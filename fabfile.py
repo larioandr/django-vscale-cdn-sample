@@ -19,7 +19,6 @@ DEFAULTS = {
     'MEDIA_PROVIDER': 'selcdn',
     'CDN_FTP_HOST': 'ftp.selcdn.ru',
     'REPO_URL': 'https://github.com/larioandr/django-vscale-cdn-sample.git',
-    'REPO_BRANCH': 'master',
     'DB_PROVIDER': 'postgresql',
     'DB_NAME': 'ubiodb',
     'DB_USER': 'ubiodbadm',
@@ -302,6 +301,7 @@ def clone_repo(c, env):
 
 
 def update_repo(c, env):
+    print('>>>>>> branch: ', env.BRANCH)
     with c.cd(f'/home/{env.VM_USER_NAME}/sites/{env.SITENAME}'):
         c.run(f'git branch --set-upstream-to origin/{env.BRANCH}', echo=True)
         c.run(f'git fetch', echo=True)
