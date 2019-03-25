@@ -28,6 +28,12 @@ DEFAULTS = {
     'CERT_YEAR': '2019',
     'MAX_BODY_SIZE': '15M',
     'EMAIL_PROVIDER': 'mailgun',
+
+    # Staging-specific deploy defaults:
+    'STAGING_REPO_BRANCH': 'master',
+
+    # Production-specific deploy defaults:
+    'PRODUCTION_REPO_BRANCH': 'release',
 }
 
 
@@ -86,6 +92,8 @@ class Environment:
             return os.environ[full_name]
         elif name in os.environ:
             return os.environ[name]
+        elif full_name in DEFAULTS:
+            return DEFAULTS[full_name]
         return DEFAULTS[name]
 
 

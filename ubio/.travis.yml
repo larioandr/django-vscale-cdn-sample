@@ -1,0 +1,17 @@
+language: python
+sudo: required
+dist: trusty
+cache:
+  directories:
+    - $HOME/.cache/pip
+python: "3.7"
+
+install:
+  - "pip install fabric2 requests"
+
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: fab update --envtype=staging
+  on:
+    branch: master
