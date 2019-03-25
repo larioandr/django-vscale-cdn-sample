@@ -10,7 +10,7 @@ install:
   - "pip install fabric2 requests nose"
 
 script:
-  - "nose ubio/"
+  - "nosetests ubio/"
 
 deploy:
   provider: script
